@@ -13,15 +13,17 @@ pub mod utilities;
 
 extern crate alloc;
 
-pub use bits::{B160, B176, B256};
+pub use bits::{B176, B256};
 pub use bytes;
 pub use bytes::Bytes;
 pub use hex;
 pub use hex_literal;
 
-/// Address type is last 20 bytes of hash of ethereum account
+/// The address type consists of the last 20 bytes of the hash of the core blockchain account, 
+/// with the network prefix and checksum pre-appended.
 pub type Address = B176;
-/// Hash, in Ethereum usually kecack256.
+
+/// Hash, in Core usually Sha-3.
 pub type Hash = B256;
 
 pub use bitvec;
