@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use revm::primitives::{B160, B256, U256};
+use revm::primitives::{B176, B256, U256};
 use std::collections::{BTreeMap, HashMap};
 mod deserializer;
 mod spec;
@@ -16,7 +16,7 @@ pub struct TestSuit(pub BTreeMap<String, TestUnit>);
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct TestUnit {
     pub env: Env,
-    pub pre: HashMap<B160, AccountInfo>,
+    pub pre: HashMap<B176, AccountInfo>,
     pub post: BTreeMap<SpecName, Vec<Test>>,
     pub transaction: TransactionParts,
 }
@@ -57,7 +57,7 @@ pub struct AccountInfo {
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Env {
-    pub current_coinbase: B160,
+    pub current_coinbase: B176,
     #[serde(default, deserialize_with = "deserialize_str_as_u256")]
     pub current_difficulty: U256,
     #[serde(deserialize_with = "deserialize_str_as_u256")]
@@ -81,7 +81,7 @@ pub struct TransactionParts {
     pub nonce: U256,
     pub secret_key: Option<B256>,
     #[serde(deserialize_with = "deserialize_maybe_empty")]
-    pub to: Option<B160>,
+    pub to: Option<B176>,
     pub value: Vec<U256>,
     pub max_fee_per_gas: Option<U256>,
     pub max_priority_fee_per_gas: Option<U256>,
@@ -90,7 +90,7 @@ pub struct TransactionParts {
 #[derive(Debug, PartialEq, Eq, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessListItem {
-    pub address: B160,
+    pub address: B176,
     pub storage_keys: Vec<B256>,
 }
 
@@ -100,7 +100,7 @@ pub type AccessList = Vec<AccessListItem>;
 mod tests {
 
     use super::*;
-    use revm::primitives::B160;
+    use revm::primitives::B176;
     use serde_json::Error;
 
     #[test]
@@ -118,12 +118,12 @@ mod tests {
     }
 
     #[test]
-    pub fn serialize_b160() -> Result<(), Error> {
+    pub fn serialize_B176() -> Result<(), Error> {
         let json = r#"{"_item":"0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba"}"#;
 
         #[derive(Deserialize, Debug)]
         pub struct Test {
-            _item: B160,
+            _item: B176,
         }
 
         let out: Test = serde_json::from_str(json)?;

@@ -19,7 +19,7 @@ ruint = { version = "1.7.0", features = ["primitive-types", "rlp"] }
 auto_impl = "1.0"
 bitvec = { version = "1", default-features = false, features = ["alloc"] }
 
-# bits B256 B160 crate
+# bits B256 B176 crate
 fixed-hash = { version = "0.8", default-features = false, features = [
     "rustc-hex",
 ] }

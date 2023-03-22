@@ -2,7 +2,7 @@
 
 use crate::inspectors::GasInspector;
 use crate::interpreter::{CallInputs, CreateInputs, Gas, InstructionResult};
-use crate::primitives::{db::Database, hex, Bytes, B160};
+use crate::primitives::{db::Database, hex, Bytes, B176};
 use crate::{evm_impl::EVMData, Inspector};
 use revm_interpreter::primitives::U256;
 use revm_interpreter::{opcode, Interpreter, Memory, Stack};
@@ -140,10 +140,10 @@ impl<DB: Database> Inspector<DB> for TracerEip3155 {
         data: &mut EVMData<'_, DB>,
         inputs: &CreateInputs,
         ret: InstructionResult,
-        address: Option<B160>,
+        address: Option<B176>,
         remaining_gas: Gas,
         out: Bytes,
-    ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
         self.gas_inspector
             .create_end(data, inputs, ret, address, remaining_gas, out.clone());
         (ret, address, remaining_gas, out)

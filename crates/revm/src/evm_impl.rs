@@ -8,7 +8,7 @@ use crate::primitives::{
     EVMResult, Env, ExecutionResult, HashMap, InvalidTransaction, Log, Output, ResultAndState,
     Spec,
     SpecId::{self, *},
-    TransactTo, B160, B256, KECCAK_EMPTY, U256,
+    TransactTo, B176, B256, KECCAK_EMPTY, U256,
 };
 use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector};
 use alloc::vec::Vec;
@@ -311,9 +311,9 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
 
     fn finalize<SPEC: Spec>(
         &mut self,
-        caller: B160,
+        caller: B176,
         gas: &Gas,
-    ) -> (HashMap<B160, Account>, Vec<Log>, u64, u64) {
+    ) -> (HashMap<B176, Account>, Vec<Log>, u64, u64) {
         let coinbase = self.data.env.block.coinbase;
         let (gas_used, gas_refunded) = if crate::USE_GAS {
             let effective_gas_price = self.data.env.effective_gas_price();
@@ -377,7 +377,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         // will have sum.
         if self.data.env.cfg.perf_all_precompiles_have_balance {
             for address in self.precompiles.addresses() {
-                let address = B160(*address);
+                let address = B176(*address);
                 if let Some(precompile) = new_state.get_mut(&address) {
                     // we found it.
                     precompile.info.balance += self
@@ -469,7 +469,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
     fn create_inner(
         &mut self,
         inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
         // Call inspector
         if INSPECT {
             let (ret, address, gas, out) = self.inspector.create(&mut self.data, inputs);
@@ -711,10 +711,10 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         &mut self,
         inputs: &CreateInputs,
         ret: InstructionResult,
-        address: Option<B160>,
+        address: Option<B176>,
         gas: Gas,
         out: Bytes,
-    ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
         if INSPECT {
             self.inspector
                 .create_end(&mut self.data, inputs, ret, address, gas, out)
@@ -898,7 +898,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
             .ok()
     }
 
-    fn load_account(&mut self, address: B160) -> Option<(bool, bool)> {
+    fn load_account(&mut self, address: B176) -> Option<(bool, bool)> {
         self.data
             .journaled_state
             .load_account_exist(address, self.data.db)
@@ -906,7 +906,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
             .ok()
     }
 
-    fn balance(&mut self, address: B160) -> Option<(U256, bool)> {
+    fn balance(&mut self, address: B176) -> Option<(U256, bool)> {
         let db = &mut self.data.db;
         let journal = &mut self.data.journaled_state;
         let error = &mut self.data.error;
@@ -917,7 +917,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
             .map(|(acc, is_cold)| (acc.info.balance, is_cold))
     }
 
-    fn code(&mut self, address: B160) -> Option<(Bytecode, bool)> {
+    fn code(&mut self, address: B176) -> Option<(Bytecode, bool)> {
         let journal = &mut self.data.journaled_state;
         let db = &mut self.data.db;
         let error = &mut self.data.error;
@@ -930,7 +930,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
     }
 
     /// Get code hash of address.
-    fn code_hash(&mut self, address: B160) -> Option<(B256, bool)> {
+    fn code_hash(&mut self, address: B176) -> Option<(B256, bool)> {
         let journal = &mut self.data.journaled_state;
         let db = &mut self.data.db;
         let error = &mut self.data.error;
@@ -952,7 +952,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
         Some((acc.info.code_hash, is_cold))
     }
 
-    fn sload(&mut self, address: B160, index: U256) -> Option<(U256, bool)> {
+    fn sload(&mut self, address: B176, index: U256) -> Option<(U256, bool)> {
         // account is always hot. reference on that statement https://eips.ethereum.org/EIPS/eip-2929 see `Note 2:`
         self.data
             .journaled_state
@@ -963,7 +963,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
 
     fn sstore(
         &mut self,
-        address: B160,
+        address: B176,
         index: U256,
         value: U256,
     ) -> Option<(U256, U256, U256, bool)> {
@@ -974,7 +974,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
             .ok()
     }
 
-    fn log(&mut self, address: B160, topics: Vec<B256>, data: Bytes) {
+    fn log(&mut self, address: B176, topics: Vec<B256>, data: Bytes) {
         if INSPECT {
             self.inspector.log(&mut self.data, &address, &topics, &data);
         }
@@ -986,7 +986,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
         self.data.journaled_state.log(log);
     }
 
-    fn selfdestruct(&mut self, address: B160, target: B160) -> Option<SelfDestructResult> {
+    fn selfdestruct(&mut self, address: B176, target: B176) -> Option<SelfDestructResult> {
         if INSPECT {
             self.inspector.selfdestruct(address, target);
         }
@@ -1000,7 +1000,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
     fn create(
         &mut self,
         inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
         self.create_inner(inputs)
     }
 

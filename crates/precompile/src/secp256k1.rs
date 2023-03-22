@@ -1,7 +1,7 @@
 use crate::{Error, Precompile, PrecompileAddress, PrecompileResult, StandardPrecompileFn};
 
 pub const ECRECOVER: PrecompileAddress = PrecompileAddress(
-    crate::u64_to_b160(1),
+    crate::u64_to_b176(1),
     Precompile::Standard(ec_recover_run as StandardPrecompileFn),
 );
 

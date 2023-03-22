@@ -20,6 +20,12 @@ construct_fixed_hash! {
     pub struct B160(20);
 }
 
+construct_fixed_hash! {
+    #[cfg_attr(any(test, feature = "arbitrary"), derive(Arbitrary, PropTestArbitrary))]
+    #[derive(AsRef,Deref)]
+    pub struct B176(22);
+}
+
 impl From<u64> for B160 {
     fn from(fr: u64) -> Self {
         let x_bytes = fr.to_be_bytes();
@@ -30,11 +36,27 @@ impl From<u64> for B160 {
     }
 }
 
+impl From<u64> for B176 {
+    fn from(fr: u64) -> Self {
+        let x_bytes = fr.to_be_bytes();
+        B176([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, x_bytes[0], x_bytes[1], x_bytes[2],
+            x_bytes[3], x_bytes[4], x_bytes[5], x_bytes[6], x_bytes[7],
+        ])
+    }
+}
+
 impl From<primitive_types::H160> for B160 {
     fn from(fr: primitive_types::H160) -> Self {
         B160(fr.0)
     }
 }
+
+// impl From<primitive_types::H160> for B176 {
+//     fn from(fr: primitive_types::H160) -> Self {
+//         B176(fr.0)
+//     }
+// }
 
 impl From<primitive_types::H256> for B256 {
     fn from(fr: primitive_types::H256) -> Self {
@@ -81,6 +103,7 @@ impl From<B256> for ruint::aliases::U256 {
 }
 
 impl_fixed_hash_conversions!(B256, B160);
+impl_fixed_hash_conversions!(B256, B176);
 
 #[cfg(feature = "serde")]
 impl serde::Serialize for B256 {
@@ -115,6 +138,17 @@ impl serde::Serialize for B160 {
 }
 
 #[cfg(feature = "serde")]
+impl serde::Serialize for B176 {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut slice = [0u8; 2 + 2 * 22];
+        serialize::serialize_raw(&mut slice, &self.0, serializer)
+    }
+}
+
+#[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for B160 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -123,6 +157,18 @@ impl<'de> serde::Deserialize<'de> for B160 {
         let mut bytes = [0u8; 20];
         serialize::deserialize_check_len(deserializer, serialize::ExpectedLen::Exact(&mut bytes))?;
         Ok(B160(bytes))
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for B176 {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let mut bytes = [0u8; 22];
+        serialize::deserialize_check_len(deserializer, serialize::ExpectedLen::Exact(&mut bytes))?;
+        Ok(B176(bytes))
     }
 }
 

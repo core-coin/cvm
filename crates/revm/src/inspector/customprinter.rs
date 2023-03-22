@@ -2,7 +2,7 @@
 //! It is great tool if some debugging is needed.
 //!
 use crate::interpreter::{opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter};
-use crate::primitives::{hex, Bytes, B160};
+use crate::primitives::{hex, Bytes, B176};
 use crate::{inspectors::GasInspector, Database, EVMData, Inspector};
 #[derive(Clone, Default)]
 pub struct CustomPrintTracer {
@@ -83,10 +83,10 @@ impl<DB: Database> Inspector<DB> for CustomPrintTracer {
         data: &mut EVMData<'_, DB>,
         inputs: &CreateInputs,
         ret: InstructionResult,
-        address: Option<B160>,
+        address: Option<B176>,
         remaining_gas: Gas,
         out: Bytes,
-    ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
         self.gas_inspector
             .create_end(data, inputs, ret, address, remaining_gas, out.clone());
         (ret, address, remaining_gas, out)
@@ -113,7 +113,7 @@ impl<DB: Database> Inspector<DB> for CustomPrintTracer {
         &mut self,
         _data: &mut EVMData<'_, DB>,
         inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
         println!(
             "CREATE CALL: caller:{:?}, scheme:{:?}, value:{:?}, init_code:{:?}, gas:{:?}",
             inputs.caller,
@@ -125,7 +125,7 @@ impl<DB: Database> Inspector<DB> for CustomPrintTracer {
         (InstructionResult::Continue, None, Gas::new(0), Bytes::new())
     }
 
-    fn selfdestruct(&mut self, contract: B160, target: B160) {
+    fn selfdestruct(&mut self, contract: B176, target: B176) {
         println!("SELFDESTRUCT on {contract:?} refund target: {target:?}");
     }
 }
@@ -149,14 +149,14 @@ mod test {
             code: Some(crate::primitives::Bytecode::new_raw(code.clone())),
             nonce: "1".parse().unwrap(),
         };
-        let callee = hex_literal::hex!("5fdcca53617f4d2b9134b29090c87d01058e27e9");
-        database.insert_account_info(crate::primitives::B160(callee), acc_info);
+        let callee = hex_literal::hex!("5fdcca53617f4d2b9134b29090c87d01058e27e90000");
+        database.insert_account_info(crate::primitives::B176(callee), acc_info);
         evm.database(database);
-        evm.env.tx.caller = crate::primitives::B160(hex_literal::hex!(
-            "5fdcca53617f4d2b9134b29090c87d01058e27e0"
+        evm.env.tx.caller = crate::primitives::B176(hex_literal::hex!(
+            "5fdcca53617f4d2b9134b29090c87d01058e27e00000"
         ));
         evm.env.tx.transact_to =
-            crate::primitives::TransactTo::Call(crate::primitives::B160(callee));
+            crate::primitives::TransactTo::Call(crate::primitives::B176(callee));
         evm.env.tx.data = crate::primitives::Bytes::new();
         evm.env.tx.value = crate::primitives::U256::ZERO;
         let _ = evm.inspect_commit(super::CustomPrintTracer::default());

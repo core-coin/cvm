@@ -1,11 +1,11 @@
 pub use crate::primitives::CreateScheme;
-use crate::primitives::{Bytes, B160, U256};
+use crate::primitives::{Bytes, B176, U256};
 
 /// Inputs for a call.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CallInputs {
     /// The target of the call.
-    pub contract: B160,
+    pub contract: B176,
     /// The transfer, if any, in this call.
     pub transfer: Transfer,
     /// The call data of the call.
@@ -24,7 +24,7 @@ pub struct CallInputs {
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CreateInputs {
-    pub caller: B160,
+    pub caller: B176,
     pub scheme: CreateScheme,
     pub value: U256,
     #[cfg_attr(
@@ -54,11 +54,11 @@ pub enum CallScheme {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CallContext {
     /// Execution address.
-    pub address: B160,
+    pub address: B176,
     /// Caller of the EVM.
-    pub caller: B160,
+    pub caller: B176,
     /// The address the contract code was loaded from, if any.
-    pub code_address: B160,
+    pub code_address: B176,
     /// Apparent value of the EVM.
     pub apparent_value: U256,
     /// The scheme used for the call.
@@ -68,9 +68,9 @@ pub struct CallContext {
 impl Default for CallContext {
     fn default() -> Self {
         CallContext {
-            address: B160::default(),
-            caller: B160::default(),
-            code_address: B160::default(),
+            address: B176::default(),
+            caller: B176::default(),
+            code_address: B176::default(),
             apparent_value: U256::default(),
             scheme: CallScheme::Call,
         }
@@ -82,9 +82,9 @@ impl Default for CallContext {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Transfer {
     /// Source address.
-    pub source: B160,
+    pub source: B176,
     /// Target address.
-    pub target: B160,
+    pub target: B176,
     /// Transfer value.
     pub value: U256,
 }

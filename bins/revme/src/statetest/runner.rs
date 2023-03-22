@@ -13,7 +13,7 @@ use revm::inspectors::TracerEip3155;
 use revm::{
     db::AccountState,
     interpreter::CreateScheme,
-    primitives::{Bytecode, Env, ExecutionResult, SpecId, TransactTo, B160, B256, U256},
+    primitives::{Bytecode, Env, ExecutionResult, SpecId, TransactTo, B176, B256, U256},
 };
 use std::sync::atomic::Ordering;
 use walkdir::{DirEntry, WalkDir};
@@ -115,37 +115,37 @@ pub fn execute_test_suit(
             B256(hex!(
                 "45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8"
             )),
-            B160(hex!("a94f5374fce5edbc8e2a8697c15331677e6ebf0b")),
+            B176(hex!("a94f5374fce5edbc8e2a8697c15331677e6ebf0b0000")),
         ),
         (
             B256(hex!(
                 "c85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4"
             )),
-            B160(hex!("cd2a3d9f938e13cd947ec05abc7fe734df8dd826")),
+            B176(hex!("cd2a3d9f938e13cd947ec05abc7fe734df8dd8260000")),
         ),
         (
             B256(hex!(
                 "044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d"
             )),
-            B160(hex!("82a978b3f5962a5b0957d9ee9eef472ee55b42f1")),
+            B176(hex!("82a978b3f5962a5b0957d9ee9eef472ee55b42f10000")),
         ),
         (
             B256(hex!(
                 "6a7eeac5f12b409d42028f66b0b2132535ee158cfda439e3bfdd4558e8f4bf6c"
             )),
-            B160(hex!("c9c5a15a403e41498b6f69f6f89dd9f5892d21f7")),
+            B176(hex!("c9c5a15a403e41498b6f69f6f89dd9f5892d21f70000")),
         ),
         (
             B256(hex!(
                 "a95defe70ebea7804f9c3be42d20d24375e2a92b9d9666b832069c5f3cd423dd"
             )),
-            B160(hex!("3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4")),
+            B176(hex!("3fb1cd2cd96c6d5c0b5eb3322d807b34482481d40000")),
         ),
         (
             B256(hex!(
                 "fe13266ff57000135fb9aa854bbfe455d8da85b21f626307bf3263a0c2a8e7fe"
             )),
-            B160(hex!("dcc5ba93a1ed7e045690d722f2bf460a51c61415")),
+            B176(hex!("dcc5ba93a1ed7e045690d722f2bf460a51c614150000")),
         ),
     ]
     .into_iter()

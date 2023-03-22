@@ -1,4 +1,4 @@
-use crate::{Log, State, B160};
+use crate::{Log, State, B176};
 use alloc::vec::Vec;
 use bytes::Bytes;
 use ruint::aliases::U256;
@@ -67,7 +67,7 @@ pub enum Output {
     Call(Bytes),
     Create(
         #[cfg_attr(feature = "serde", serde(with = "crate::utilities::serde_hex_bytes"))] Bytes,
-        Option<B160>,
+        Option<B176>,
     ),
 }
 

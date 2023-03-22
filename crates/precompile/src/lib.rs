@@ -14,6 +14,7 @@ pub use primitives::{
 };
 pub use revm_primitives as primitives;
 
+pub type B176 = [u8; 22];
 pub type B160 = [u8; 20];
 pub type B256 = [u8; 32];
 
@@ -36,7 +37,7 @@ pub struct PrecompileOutput {
 
 #[derive(Debug, Default)]
 pub struct Log {
-    pub address: B160,
+    pub address: B176,
     pub topics: Vec<B256>,
     pub data: Bytes,
 }
@@ -53,7 +54,7 @@ impl PrecompileOutput {
 
 #[derive(Clone, Debug)]
 pub struct Precompiles {
-    pub fun: HashMap<B160, Precompile>,
+    pub fun: HashMap<B176, Precompile>,
 }
 
 impl Default for Precompiles {
@@ -77,9 +78,9 @@ impl fmt::Debug for Precompile {
     }
 }
 
-pub struct PrecompileAddress(B160, Precompile);
+pub struct PrecompileAddress(B176, Precompile);
 
-impl From<PrecompileAddress> for (B160, Precompile) {
+impl From<PrecompileAddress> for (B176, Precompile) {
     fn from(value: PrecompileAddress) -> Self {
         (value.0, value.1)
     }
@@ -204,15 +205,15 @@ impl Precompiles {
         }
     }
 
-    pub fn addresses(&self) -> impl IntoIterator<Item = &B160> {
+    pub fn addresses(&self) -> impl IntoIterator<Item = &B176> {
         self.fun.keys()
     }
 
-    pub fn contains(&self, address: &B160) -> bool {
+    pub fn contains(&self, address: &B176) -> bool {
         self.fun.contains_key(address)
     }
 
-    pub fn get(&self, address: &B160) -> Option<Precompile> {
+    pub fn get(&self, address: &B176) -> Option<Precompile> {
         //return None;
         self.fun.get(address).cloned()
     }
@@ -229,10 +230,10 @@ impl Precompiles {
 /// const fn for making an address by concatenating the bytes from two given numbers,
 /// Note that 32 + 128 = 160 = 20 bytes (the length of an address). This function is used
 /// as a convenience for specifying the addresses of the various precompiles.
-const fn u64_to_b160(x: u64) -> B160 {
+const fn u64_to_b176(x: u64) -> B176 {
     let x_bytes = x.to_be_bytes();
     [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, x_bytes[0], x_bytes[1], x_bytes[2], x_bytes[3],
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, x_bytes[0], x_bytes[1], x_bytes[2], x_bytes[3],
         x_bytes[4], x_bytes[5], x_bytes[6], x_bytes[7],
     ]
 }

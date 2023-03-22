@@ -1,7 +1,7 @@
 //! GasIspector. Helper Inspector to calculte gas for others.
 //!
 use crate::interpreter::{CallInputs, CreateInputs, Gas, InstructionResult};
-use crate::primitives::{db::Database, Bytes, B160};
+use crate::primitives::{db::Database, Bytes, B176};
 use crate::{evm_impl::EVMData, Inspector};
 
 #[allow(dead_code)]
@@ -81,10 +81,10 @@ impl<DB: Database> Inspector<DB> for GasInspector {
         _data: &mut EVMData<'_, DB>,
         _inputs: &CreateInputs,
         ret: InstructionResult,
-        address: Option<B160>,
+        address: Option<B176>,
         remaining_gas: Gas,
         out: Bytes,
-    ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
         (ret, address, remaining_gas, out)
     }
 }
@@ -96,7 +96,7 @@ mod tests {
         opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, OpCode,
     };
     use crate::primitives::{
-        hex_literal::hex, Bytecode, Bytes, ResultAndState, TransactTo, B160, B256,
+        hex_literal::hex, Bytecode, Bytes, ResultAndState, TransactTo, B176, B256,
     };
     use crate::{inspectors::GasInspector, Database, EVMData, Inspector};
 
@@ -133,7 +133,7 @@ mod tests {
         fn log(
             &mut self,
             evm_data: &mut EVMData<'_, DB>,
-            address: &B160,
+            address: &B176,
             topics: &[B256],
             data: &Bytes,
         ) {
@@ -186,7 +186,7 @@ mod tests {
             &mut self,
             data: &mut EVMData<'_, DB>,
             call: &mut CreateInputs,
-        ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+        ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
             self.gas_inspector.create(data, call);
 
             (
@@ -202,10 +202,10 @@ mod tests {
             data: &mut EVMData<'_, DB>,
             inputs: &CreateInputs,
             status: InstructionResult,
-            address: Option<B160>,
+            address: Option<B176>,
             gas: Gas,
             retdata: Bytes,
-        ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+        ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
             self.gas_inspector
                 .create_end(data, inputs, status, address, gas, retdata.clone());
             (status, address, gas, retdata)
@@ -233,9 +233,9 @@ mod tests {
 
         let mut evm = crate::new();
         evm.database(BenchmarkDB::new_bytecode(bytecode.clone()));
-        evm.env.tx.caller = B160(hex!("1000000000000000000000000000000000000000"));
+        evm.env.tx.caller = B176(hex!("10000000000000000000000000000000000000000000"));
         evm.env.tx.transact_to =
-            TransactTo::Call(B160(hex!("0000000000000000000000000000000000000000")));
+            TransactTo::Call(B176(hex!("00000000000000000000000000000000000000000000")));
         evm.env.tx.gas_limit = 21100;
 
         let mut inspector = StackInspector::default();

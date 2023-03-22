@@ -1,10 +1,10 @@
 use bytes::Bytes;
 use hash_db::Hasher;
 use plain_hasher::PlainHasher;
-use primitive_types::{H160, H256};
+use primitive_types::H256;
 use revm::{
     db::DbAccount,
-    primitives::{keccak256, Log, B160, B256, U256},
+    primitives::{keccak256, Log, B176, B256, U256},
 };
 use rlp::RlpStream;
 use sha3::{Digest, Keccak256};
@@ -30,11 +30,11 @@ pub fn log_rlp_hash(logs: Vec<Log>) -> B256 {
     keccak256(&out)
 }
 
-pub fn state_merkle_trie_root(accounts: impl Iterator<Item = (B160, DbAccount)>) -> B256 {
+pub fn state_merkle_trie_root(accounts: impl Iterator<Item = (B176, DbAccount)>) -> B256 {
     let vec = accounts
         .map(|(address, info)| {
             let acc_root = trie_account_rlp(&info);
-            (H160::from(address.0), acc_root)
+            (B176::from(address.0), acc_root)
         })
         .collect();
 
@@ -58,7 +58,7 @@ pub fn trie_account_rlp(acc: &DbAccount) -> Bytes {
     stream.out().freeze()
 }
 
-pub fn trie_root(acc_data: Vec<(H160, Bytes)>) -> B256 {
+pub fn trie_root(acc_data: Vec<(B176, Bytes)>) -> B256 {
     B256(sec_trie_root::<KeccakHasher, _, _, _>(acc_data.into_iter()).0)
 }
 

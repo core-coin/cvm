@@ -1,4 +1,4 @@
-use crate::{Bytecode, B160, B256, KECCAK_EMPTY, U256};
+use crate::{Bytecode, B176, B256, KECCAK_EMPTY, U256};
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -19,7 +19,7 @@ pub struct Account {
     pub is_not_existing: bool,
 }
 
-pub type State = HashMap<B160, Account>;
+pub type State = HashMap<B176, Account>;
 pub type Storage = HashMap<U256, StorageSlot>;
 
 impl Account {

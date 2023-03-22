@@ -1,6 +1,6 @@
 use super::{DatabaseCommit, DatabaseRef};
 use crate::primitives::{
-    hash_map::Entry, keccak256, Account, AccountInfo, Bytecode, HashMap, Log, B160, B256,
+    hash_map::Entry, keccak256, Account, AccountInfo, Bytecode, HashMap, Log, B176, B256,
     KECCAK_EMPTY, U256,
 };
 use crate::Database;
@@ -20,7 +20,7 @@ impl Default for InMemoryDB {
 pub struct CacheDB<ExtDB: DatabaseRef> {
     /// Account info where None means it is not existing. Not existing state is needed for Pre TANGERINE forks.
     /// `code` is always `None`, and bytecode can be found in `contracts`.
-    pub accounts: HashMap<B160, DbAccount>,
+    pub accounts: HashMap<B176, DbAccount>,
     pub contracts: HashMap<B256, Bytecode>,
     pub logs: Vec<Log>,
     pub block_hashes: HashMap<U256, B256>,
@@ -127,12 +127,12 @@ impl<ExtDB: DatabaseRef> CacheDB<ExtDB> {
     }
 
     /// Insert account info but not override storage
-    pub fn insert_account_info(&mut self, address: B160, mut info: AccountInfo) {
+    pub fn insert_account_info(&mut self, address: B176, mut info: AccountInfo) {
         self.insert_contract(&mut info);
         self.accounts.entry(address).or_default().info = info;
     }
 
-    pub fn load_account(&mut self, address: B160) -> Result<&mut DbAccount, ExtDB::Error> {
+    pub fn load_account(&mut self, address: B176) -> Result<&mut DbAccount, ExtDB::Error> {
         let db = &self.db;
         match self.accounts.entry(address) {
             Entry::Occupied(entry) => Ok(entry.into_mut()),
@@ -150,7 +150,7 @@ impl<ExtDB: DatabaseRef> CacheDB<ExtDB> {
     /// insert account storage without overriding account info
     pub fn insert_account_storage(
         &mut self,
-        address: B160,
+        address: B176,
         slot: U256,
         value: U256,
     ) -> Result<(), ExtDB::Error> {
@@ -162,7 +162,7 @@ impl<ExtDB: DatabaseRef> CacheDB<ExtDB> {
     /// replace account storage without overriding account info
     pub fn replace_account_storage(
         &mut self,
-        address: B160,
+        address: B176,
         storage: HashMap<U256, U256>,
     ) -> Result<(), ExtDB::Error> {
         let account = self.load_account(address)?;
@@ -173,7 +173,7 @@ impl<ExtDB: DatabaseRef> CacheDB<ExtDB> {
 }
 
 impl<ExtDB: DatabaseRef> DatabaseCommit for CacheDB<ExtDB> {
-    fn commit(&mut self, changes: HashMap<B160, Account>) {
+    fn commit(&mut self, changes: HashMap<B176, Account>) {
         for (address, mut account) in changes {
             if account.is_destroyed {
                 let db_account = self.accounts.entry(address).or_default();
@@ -220,7 +220,7 @@ impl<ExtDB: DatabaseRef> Database for CacheDB<ExtDB> {
         }
     }
 
-    fn basic(&mut self, address: B160) -> Result<Option<AccountInfo>, Self::Error> {
+    fn basic(&mut self, address: B176) -> Result<Option<AccountInfo>, Self::Error> {
         let basic = match self.accounts.entry(address) {
             Entry::Occupied(entry) => entry.into_mut(),
             Entry::Vacant(entry) => entry.insert(
@@ -239,7 +239,7 @@ impl<ExtDB: DatabaseRef> Database for CacheDB<ExtDB> {
     /// Get the value in an account's storage slot.
     ///
     /// It is assumed that account is already loaded.
-    fn storage(&mut self, address: B160, index: U256) -> Result<U256, Self::Error> {
+    fn storage(&mut self, address: B176, index: U256) -> Result<U256, Self::Error> {
         match self.accounts.entry(address) {
             Entry::Occupied(mut acc_entry) => {
                 let acc_entry = acc_entry.get_mut();
@@ -290,14 +290,14 @@ impl<ExtDB: DatabaseRef> Database for CacheDB<ExtDB> {
 impl<ExtDB: DatabaseRef> DatabaseRef for CacheDB<ExtDB> {
     type Error = ExtDB::Error;
 
-    fn basic(&self, address: B160) -> Result<Option<AccountInfo>, Self::Error> {
+    fn basic(&self, address: B176) -> Result<Option<AccountInfo>, Self::Error> {
         match self.accounts.get(&address) {
             Some(acc) => Ok(acc.info()),
             None => self.db.basic(address),
         }
     }
 
-    fn storage(&self, address: B160, index: U256) -> Result<U256, Self::Error> {
+    fn storage(&self, address: B176, index: U256) -> Result<U256, Self::Error> {
         match self.accounts.get(&address) {
             Some(acc_entry) => match acc_entry.storage.get(&index) {
                 Some(entry) => Ok(*entry),
@@ -338,7 +338,7 @@ pub struct EmptyDB();
 impl DatabaseRef for EmptyDB {
     type Error = Infallible;
     /// Get basic account information.
-    fn basic(&self, _address: B160) -> Result<Option<AccountInfo>, Self::Error> {
+    fn basic(&self, _address: B176) -> Result<Option<AccountInfo>, Self::Error> {
         Ok(None)
     }
     /// Get account code by its hash
@@ -346,7 +346,7 @@ impl DatabaseRef for EmptyDB {
         Ok(Bytecode::new())
     }
     /// Get storage value of address at index.
-    fn storage(&self, _address: B160, _index: U256) -> Result<U256, Self::Error> {
+    fn storage(&self, _address: B176, _index: U256) -> Result<U256, Self::Error> {
         Ok(U256::default())
     }
 
@@ -372,8 +372,8 @@ impl BenchmarkDB {
 impl Database for BenchmarkDB {
     type Error = Infallible;
     /// Get basic account information.
-    fn basic(&mut self, address: B160) -> Result<Option<AccountInfo>, Self::Error> {
-        if address == B160::zero() {
+    fn basic(&mut self, address: B176) -> Result<Option<AccountInfo>, Self::Error> {
+        if address == B176::zero() {
             return Ok(Some(AccountInfo {
                 nonce: 1,
                 balance: U256::from(10000000),
@@ -390,7 +390,7 @@ impl Database for BenchmarkDB {
     }
 
     /// Get storage value of address at index.
-    fn storage(&mut self, _address: B160, _index: U256) -> Result<U256, Self::Error> {
+    fn storage(&mut self, _address: B176, _index: U256) -> Result<U256, Self::Error> {
         Ok(U256::default())
     }
 
