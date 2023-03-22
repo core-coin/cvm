@@ -29,7 +29,10 @@ pub fn create_address(caller: B176, nonce: u64) -> B176 {
     stream.append(&nonce);
     let out = keccak256(&stream.out());
 
+    // Get the last 20 bytes of the hash
     let addr = B160(out[12..].try_into().unwrap());
+
+    // Calculate the checksum and add the network prefix
     to_ican(&addr, &NetworkType::Mainnet)
 }
 
@@ -41,33 +44,44 @@ pub fn create2_address(caller: B176, code_hash: B256, salt: U256) -> B176 {
     hasher.update(salt.to_be_bytes::<{ U256::BYTES }>());
     hasher.update(&code_hash[..]);
 
+    // Get the last 20 bytes of the hash
     let addr = B160(hasher.finalize().as_slice()[12..].try_into().unwrap());
+
+    // Calculate the checksum and add the network prefix
     to_ican(&addr, &NetworkType::Mainnet)
 }
 
-pub fn to_ican(addr: &B160, network: &NetworkType) -> B176 {
+fn to_ican(addr: &B160, network: &NetworkType) -> B176 {
+    // Get the prefix str
     let prefix = match network {
         NetworkType::Mainnet => MAINNET,
         NetworkType::Testnet => TESTNET,
         NetworkType::Private => PRIVATE,
     };
 
+    // Get the number string from the hex address
     let number_str = get_number_string(addr, network);
+
+    // Calculate the checksum
     let checksum = calculate_checksum(&number_str);
+
+    // Format it all together
     construct_ican_address(prefix, &checksum, addr)
 }
 
 fn get_number_string(addr: &B160, network: &NetworkType) -> String {
-    // We can't use to_string() -> https://github.com/paritytech/parity-common/issues/656
     let prefix = match network {
         NetworkType::Mainnet => MAINNET,
         NetworkType::Testnet => TESTNET,
         NetworkType::Private => PRIVATE,
     };
 
+    // We have to use the Debug trait for addr https://github.com/paritytech/parity-common/issues/656
     let mut addr_str = format!("{:?}{}{}", addr, prefix, "00");
+    // Remove the 0x prefix
     addr_str = addr_str.replace("0x", "");
 
+    // Convert every hex digit to decimal and then to String
     addr_str
         .chars()
         .map(|x| x.to_digit(16).expect("Invalid Address").to_string())
@@ -75,16 +89,22 @@ fn get_number_string(addr: &B160, network: &NetworkType) -> String {
 }
 
 fn calculate_checksum(number_str: &str) -> u64 {
+    // number_str % 97
     let result = number_str.chars().fold(0, |acc, ch| {
         let digit = ch.to_digit(10).expect("Invalid Digit") as u64;
         (acc * 10 + digit) % 97
     });
+
     98 - result
 }
 
 fn construct_ican_address(prefix: &str, checksum: &u64, addr: &B160) -> B176 {
+    // We need to use debug for the address https://github.com/paritytech/parity-common/issues/656
     let addr = format!("{:?}", addr);
+    // Remove 0x prefix
     let addr = addr.replace("0x", "");
+
+    // If the checksum is less than 10 we need to add a zero to the address
     if *checksum < 10 {
         B176::from_str(&format!("{prefix}{zero}{checksum}{addr}", zero = "0")).unwrap()
     } else {
