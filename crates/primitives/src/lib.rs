@@ -19,7 +19,7 @@ pub use bytes::Bytes;
 pub use hex;
 pub use hex_literal;
 
-/// The address type consists of the last 20 bytes of the hash of the core blockchain account, 
+/// The address type consists of the last 20 bytes of the hash of the core blockchain account,
 /// with the network prefix and checksum pre-appended.
 pub type Address = B176;
 

@@ -118,8 +118,8 @@ mod tests {
     }
 
     #[test]
-    pub fn serialize_B176() -> Result<(), Error> {
-        let json = r#"{"_item":"0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba"}"#;
+    pub fn serialize_b176() -> Result<(), Error> {
+        let json = r#"{"_item":"0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba0000"}"#;
 
         #[derive(Deserialize, Debug)]
         pub struct Test {
