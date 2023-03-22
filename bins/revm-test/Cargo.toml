@@ -11,7 +11,8 @@ revm = { path = "../../crates/revm", version = "3.0.0" }
 microbench = "0.5"
 
 [[bin]]
-name = "analysis"
+name = "ican_deploy_contract"
 
 [[bin]]
-name = "snailtracer"
+name = "ican_send_eth"
+
