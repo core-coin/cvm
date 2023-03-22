@@ -537,10 +537,10 @@ impl JournaledState {
 }
 
 fn is_precompile(address: B176, num_of_precompiles: usize) -> bool {
-    if !address[..18].iter().all(|i| *i == 0) {
+    if !address[..20].iter().all(|i| *i == 0) {
         return false;
     }
-    let num = u16::from_be_bytes([address[18], address[19]]);
+    let num = u16::from_be_bytes([address[20], address[21]]);
     num.wrapping_sub(1) < num_of_precompiles as u16
 }
 
