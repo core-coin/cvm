@@ -13,7 +13,7 @@ pub mod utilities;
 
 extern crate alloc;
 
-pub use bits::{B176, B256};
+pub use bits::{B160, B176, B256};
 pub use bytes;
 pub use bytes::Bytes;
 pub use hex;
