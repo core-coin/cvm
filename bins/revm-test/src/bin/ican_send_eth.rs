@@ -2,14 +2,14 @@ use bytes::Bytes;
 use revm::primitives::AccountInfo;
 use revm::{db::InMemoryDB, primitives::TransactTo};
 use revm::{
-    primitives::{B176, U256 as rU256},
+    primitives::{B176, U256},
     EVM,
 };
 use std::str::FromStr;
 
 fn main() {
     let account = AccountInfo {
-        balance: rU256::from_str("10000000000000000000000").unwrap(),
+        balance: U256::from_str("10000000000000000000000").unwrap(),
         ..Default::default()
     };
 
@@ -31,7 +31,7 @@ fn main() {
     // calldata formed via abigen
     evm.env.tx.data = Bytes::default();
     // transaction value in wei
-    evm.env.tx.value = rU256::from_str("1000000000000000000").unwrap();
+    evm.env.tx.value = U256::from_str("1000000000000000000").unwrap();
 
     // execute transaction without writing to the DB
     let _ = evm.transact_commit().unwrap();

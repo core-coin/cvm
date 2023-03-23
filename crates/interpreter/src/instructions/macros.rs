@@ -89,7 +89,7 @@ macro_rules! pop_address {
         }
         // Safety: Length is checked above.
         let $x1: B176 = B176(
-            unsafe { $interp.stack.pop_unsafe() }.to_be_bytes::<{ U256::BYTES }>()[12..]
+            unsafe { $interp.stack.pop_unsafe() }.to_be_bytes::<{ U256::BYTES }>()[10..]
                 .try_into()
                 .unwrap(),
         );
@@ -102,12 +102,12 @@ macro_rules! pop_address {
         let mut temp = H256::zero();
 
         let $x1: B176 = B176(
-            unsafe { $interp.stack.pop_unsafe() }.to_be_bytes::<{ U256::BYTES }>()[12..]
+            unsafe { $interp.stack.pop_unsafe() }.to_be_bytes::<{ U256::BYTES }>()[10..]
                 .try_into()
                 .unwrap(),
         );
         let $x2: B176 = B176(
-            unsafe { $interp.stack.pop_unsafe() }.to_be_bytes::<{ U256::BYTES }>()[12..]
+            unsafe { $interp.stack.pop_unsafe() }.to_be_bytes::<{ U256::BYTES }>()[10..]
                 .try_into()
                 .unwrap(),
         );

@@ -1,0 +1,41 @@
+// Function that takes in address as an argument and sends the msg.value to that address
+#define macro SEND() = takes(0) returns(0) {
+    0x04 calldataload           // [Address]
+    // Not really necessary but good to have
+    0x00000000000000000000ffffffffffffffffffffffffffffffffffffffffffff
+    and                         // [Address & Mask]
+
+    0x00 0x00                   // [retOffset, retSize, Addr]
+    0x00 0x00                   // [argOffset, argSize, retOffset, retSize, Addr]
+    callvalue                   // [msg.value, argOffset, argSize, retOffset, retSize, Addr]
+    dup6                        // [Addr, msg.value, argOffset, argSize, retOffset, retSize, Addr]
+    gas                         // [Gas, Addr, msg.value, argOffset, argSize, retOffset, retSize, Addr]
+    call                        // [success, Addr]
+
+    0x01                        // [true, success, Addr]
+    eq                          // [true == success, Addr]
+    success                     // [jumpDest, success, Addr]
+    jumpi                       // [Addr]
+
+    0x00 0x00                   // [size, offset]
+    revert                      // []
+
+    success:                    // [jumpdest]
+        stop
+}
+
+
+
+#define macro MAIN() = takes(0) returns(0) {
+    // Dispatch not necessary since there is only one function but good to have for 
+    // future tests
+    0x00 calldataload 0xe0 shr  // [Selector]
+
+    dup1 __FUNC_SIG(send) eq send jumpi
+
+    send:
+        SEND()
+
+    0x00 0x00
+    revert
+}
