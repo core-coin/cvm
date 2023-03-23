@@ -1,7 +1,7 @@
 // Function that takes in address as an argument and sends the msg.value to that address
 #define macro SEND() = takes(0) returns(0) {
     0x04 calldataload           // [Address]
-    // Not really necessary but good to have
+    // Mask is to make sure it takes exactly 22 bytes
     0x00000000000000000000ffffffffffffffffffffffffffffffffffffffffffff
     and                         // [Address & Mask]
 
