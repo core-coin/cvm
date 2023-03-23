@@ -6,7 +6,8 @@ use revm::{
 };
 use std::str::FromStr;
 
-fn main() {
+#[test]
+fn test_send_ican() {
     // Create AccountInfo with balance for gas
     let account = AccountInfo {
         balance: U256::from_str("10000000000000000000000").unwrap(),

@@ -1,4 +1,5 @@
 use bytes::Bytes;
+use revm;
 use revm::{
     db::InMemoryDB,
     primitives::{AccountInfo, ExecutionResult, Output, TransactTo, TxEnv, B176, U256},
@@ -6,8 +7,9 @@ use revm::{
 };
 use std::str::FromStr;
 
-fn main() {
-    // Contract bytecode -> bins/revm-test/src/bin/Huff/Send.huff
+#[test]
+fn test_deploy_ican() {
+    // Contract bytecode -> bins/revme/tests/Huff/Send.huff
     let contract_data: Bytes = hex::decode("604c8060093d393df360003560e01c80633e58c58c14610011575b60043575ffffffffffffffffffffffffffffffffffffffffffff16600060006000600034855af16001146100455760006000fd5b0060006000fd").unwrap().into();
 
     // Create new EVM
