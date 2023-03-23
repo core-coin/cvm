@@ -108,8 +108,6 @@ fn construct_ican_address(prefix: &str, checksum: &u64, addr: &B160) -> B176 {
     if *checksum < 10 {
         B176::from_str(&format!("{prefix}{zero}{checksum}{addr}", zero = "0")).unwrap()
     } else {
-        let formated = format!("{prefix}{checksum}{addr}");
-        println!("{}", formated);
         B176::from_str(&format!("{prefix}{checksum}{addr}")).unwrap()
     }
 }
