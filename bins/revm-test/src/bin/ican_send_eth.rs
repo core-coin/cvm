@@ -1,4 +1,3 @@
-use bytes::Bytes;
 use revm::primitives::AccountInfo;
 use revm::{db::InMemoryDB, primitives::TransactTo};
 use revm::{
@@ -8,6 +7,7 @@ use revm::{
 use std::str::FromStr;
 
 fn main() {
+    // Create AccountInfo with balance for gas
     let account = AccountInfo {
         balance: U256::from_str("10000000000000000000000").unwrap(),
         ..Default::default()
@@ -15,33 +15,37 @@ fn main() {
 
     // initialise an empty (default) EVM
     let mut evm = EVM::new();
-    // let bytecode: Bytes = hex::decode("123").unwrap().into();
-    // let bytecode = to_analysed(Bytecode::new_raw(bytecode));
-    // let bytecode = Bytecode::from(bytecode);
+
+    // initialise the database
     evm.database(InMemoryDB::default());
+
+    // Assign the balance to the zero address
     evm.db.as_mut().unwrap().insert_account_info(
         B176::from_str("0x00000000000000000000000000000000000000000000").unwrap(),
         account,
     );
 
+    // Caller is the 0 address
     evm.env.tx.caller = B176::from_str("0x00000000000000000000000000000000000000000000").unwrap();
-    // account you want to transact with
+    // Account we want to transact with
     evm.env.tx.transact_to =
         TransactTo::Call(B176::from_str("0x00000000000000000000000000000000000000000002").unwrap());
-    // calldata formed via abigen
-    evm.env.tx.data = Bytes::default();
     // transaction value in wei
-    evm.env.tx.value = U256::from_str("1000000000000000000").unwrap();
+    evm.env.tx.value = U256::from_str("100000000").unwrap();
 
-    // execute transaction without writing to the DB
+    // execute transaction and write it to the db
     let _ = evm.transact_commit().unwrap();
-    // select ExecutionResult struct
 
-    let state = evm.clone().db.unwrap();
-    let state = state
+    // Get the balance of the 0x02 account
+    let balance = evm
+        .db
+        .unwrap()
         .accounts
-        .get(&B176::from_str("0x00000000000000000000000000000000000000000002").unwrap());
+        .get(&B176::from_str("0x00000000000000000000000000000000000000000002").unwrap())
+        .unwrap()
+        .info
+        .balance;
 
-    println!("STATE: {:#?}", state);
-    println!("{:#?}", evm.env);
+    // Make sure it is the same amount as we sent
+    assert_eq!(balance, U256::from(100000000));
 }
