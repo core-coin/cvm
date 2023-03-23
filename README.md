@@ -17,5 +17,8 @@ cargo run --package revm-test --bin ican_deploy_contract
 ```
 
 ### Disclaimer
+Precompile part of the REVM isn't yet working with H176
+
 Tests are passing but will need more testing
+
 
