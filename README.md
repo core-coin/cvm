@@ -18,15 +18,17 @@ Precompile part of the REVM isn't yet working with H176
 ## Contributing
 Before opening a pr run:
 ```bash
+cargo test --all --all-features
+```
+```bash
 cargo +nightly clippy --all --all-features
 ```
-and:
 ```bash
 cargo +nightly fmt --all
 ```
 
-And make sure they pass.
-You will need to have nightly downloaded.
+Make sure they all pass.
+You will need to have nightly installed.
 
 ## TODO
  - [ ] Modify the precompile part of the crate
