@@ -2,20 +2,36 @@
 
 Fork of [REVM](https://github.com/bluealloy/revm) that uses 176 bit 22 byte ICAN addresses.
 
+## Tests
+
 To run tests:
 ```bash
 cargo test --all --all-features
 ```
 
-### Disclaimer
+If you want to learn how to interact with REVM the best way is to write an integration test.
+You can check out 2 well documented examples [here](https://github.com/Kuly14/ican-revm/tree/main/bins/revme/tests) and add some of your own tests.
+
+## Disclaimer
 Precompile part of the REVM isn't yet working with H176
 
-Tests are passing but will need more testing
+## Contributing
+Before opening a pr run:
+```bash
+cargo +nightly clippy --all --all-features
+```
+and:
+```bash
+cargo +nightly fmt --all
+```
 
+And make sure they pass.
+You will need to have nightly downloaded.
 
 ## TODO
- - [] Modify the precompile part of the crate
- - [] Add benchmark tests from - [REVM](https://github.com/bluealloy/revm/tree/main/bins/revm-test/src/bin) 
- - [] Modify [official Ethereum tests](https://github.com/ethereum/tests/tree/develop/GeneralStateTests) for 22 byte addresses and add it to this crate
+ - [ ] Modify the precompile part of the crate
+ - [ ] Add benchmark tests from - [REVM](https://github.com/bluealloy/revm/tree/main/bins/revm-test/src/bin) 
+ - [ ] Modify [official Ethereum tests](https://github.com/ethereum/tests/tree/develop/GeneralStateTests) for 22 byte addresses and add it to this crate
+ - [ ] Implement Ed448
 
 
