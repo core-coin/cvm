@@ -42,7 +42,7 @@ You will need to have nightly installed.
 
 ## TODO
  - [ ] Modify the EVM::new() methods so it takes what kind of network are we running it on: 1. Mainnet: "cb"...
- - [ ] Add benchmark tests from - [REVM](https://github.com/bluealloy/revm/tree/main/bins/revm-test/src/bin) 
+ - [x] Add benchmark tests from - [REVM](https://github.com/bluealloy/revm/tree/main/bins/revm-test/src/bin) 
  - [ ] Modify [official Ethereum tests](https://github.com/ethereum/tests/tree/develop/GeneralStateTests) for 22 byte addresses and add it to this crate
  - [x] Modify the precompile part of the crate
  - [ ] Implement Ed448
