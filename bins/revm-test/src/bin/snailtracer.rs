@@ -25,7 +25,10 @@ pub fn simple_example() {
             .parse()
             .unwrap(),
     );
-    evm.env.tx.data = Bytes::from(hex::decode("3e58c58c00000000000000000000ffffffffffffffffffffffffffffffffffffffffffff").unwrap());
+    evm.env.tx.data = Bytes::from(
+        hex::decode("3e58c58c00000000000000000000ffffffffffffffffffffffffffffffffffffffffffff")
+            .unwrap(),
+    );
 
     // Microbenchmark
     let bench_options = microbench::Options::default().time(Duration::from_secs(2));
