@@ -12,6 +12,16 @@ cargo test --all --all-features
 If you want to learn how to interact with REVM the best way is to write an integration test.
 You can check out 2 well documented examples [here](https://github.com/Kuly14/ican-revm/tree/main/bins/revme/tests) and add some of your own tests.
 
+## Benchmark Tests
+Don't forget to run them with the `--release` flag.
+
+```bash
+cargo run --package revm-test --release --bin analysis
+```
+```bash
+cargo run --package revm-test --release --bin snailtracer
+```
+
 ## Disclaimer
 Precompile part of the REVM isn't yet working with H176
 
