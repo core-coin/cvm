@@ -130,7 +130,8 @@ impl Default for CfgEnv {
     fn default() -> CfgEnv {
         CfgEnv {
             chain_id: U256::from(1),
-            spec_id: SpecId::LATEST,
+            // For the CVM the target is Istanbul
+            spec_id: SpecId::ISTANBUL,
             perf_all_precompiles_have_balance: false,
             perf_analyse_created_bytecodes: Default::default(),
             limit_contract_code_size: None,
