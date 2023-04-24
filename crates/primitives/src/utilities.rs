@@ -1,6 +1,6 @@
 use crate::{B160, B176, B256, U256};
 use hex_literal::hex;
-use sha3::{Digest, Keccak256};
+use sha3::{Digest, Sha3_256};
 use std::str::FromStr;
 
 const MAINNET: &str = "cb";
@@ -18,8 +18,8 @@ pub const KECCAK_EMPTY: B256 = B256(hex!(
 ));
 
 #[inline(always)]
-pub fn keccak256(input: &[u8]) -> B256 {
-    B256::from_slice(Keccak256::digest(input).as_slice())
+pub fn sha3(input: &[u8]) -> B256 {
+    B256::from_slice(Sha3_256::digest(input).as_slice())
 }
 
 /// Returns the address for the legacy `CREATE` scheme: [`CreateScheme::Create`]
@@ -27,7 +27,7 @@ pub fn create_address(caller: B176, nonce: u64) -> B176 {
     let mut stream = rlp::RlpStream::new_list(2);
     stream.append(&caller.0.as_ref());
     stream.append(&nonce);
-    let out = keccak256(&stream.out());
+    let out = sha3(&stream.out());
 
     // Get the last 20 bytes of the hash
     let addr = B160(out[12..].try_into().unwrap());
@@ -38,7 +38,7 @@ pub fn create_address(caller: B176, nonce: u64) -> B176 {
 
 /// Returns the address for the `CREATE2` scheme: [`CreateScheme::Create2`]
 pub fn create2_address(caller: B176, code_hash: B256, salt: U256) -> B176 {
-    let mut hasher = Keccak256::new();
+    let mut hasher = Sha3_256::new();
     hasher.update([0xff]);
     hasher.update(&caller[..]);
     hasher.update(salt.to_be_bytes::<{ U256::BYTES }>());
@@ -153,7 +153,7 @@ pub mod tests {
 
         assert_eq!(
             ican_address,
-            B176::from_str("cb41485a42277ed7f4fea81cc12efd12d57dcb549150").unwrap()
+            B176::from_str("cb617173a16e0919885092a21559c183fd7e002bac4d").unwrap()
         );
     }
     #[test]
@@ -163,7 +163,7 @@ pub mod tests {
 
         assert_eq!(
             ican_address,
-            B176::from_str("cb68b6dd5cdf0c69c82081746ec9856dad75075e72e4").unwrap()
+            B176::from_str("cb138c35c28ea04cc9f9ff9a6bab2fb5e29108875ca9").unwrap()
         );
     }
     #[test]
@@ -173,7 +173,7 @@ pub mod tests {
 
         assert_eq!(
             ican_address,
-            B176::from_str("cb6959e403eb217b58e3b892dd0d07b560ec36a7f7f4").unwrap()
+            B176::from_str("cb443ffac1268f7925441476543b00cf358c2a384768").unwrap()
         );
     }
 
@@ -184,7 +184,7 @@ pub mod tests {
 
         assert_eq!(
             ican_address,
-            B176::from_str("cb1530dffdf96017ce586326f231beb4fbbdfb117447").unwrap()
+            B176::from_str("cb24a85f3e83d08e1a32a6ffd94e64a55ed5fc02728a").unwrap()
         );
     }
     #[test]
@@ -194,7 +194,7 @@ pub mod tests {
 
         assert_eq!(
             ican_address,
-            B176::from_str("cb43708ccdbe03ea3773582f4af6aab1982a8e9482d6").unwrap()
+            B176::from_str("cb6525960ac8820d2ad4b789c7a0cd5ab37e9accbd6d").unwrap()
         );
     }
     #[test]
@@ -204,7 +204,7 @@ pub mod tests {
 
         assert_eq!(
             ican_address,
-            B176::from_str("cb33779fc3d7bb2c9e6ded3c42e865b28c5d8a70c8b7").unwrap()
+            B176::from_str("cb987f6ed234f747b03815a9ef96a2158825bc9dffcc").unwrap()
         );
     }
 

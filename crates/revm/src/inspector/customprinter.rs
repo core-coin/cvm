@@ -145,7 +145,7 @@ mod test {
 
         let acc_info = crate::primitives::AccountInfo {
             balance: "0x100c5d668240db8e00".parse().unwrap(),
-            code_hash: crate::primitives::keccak256(&code),
+            code_hash: crate::primitives::sha3(&code),
             code: Some(crate::primitives::Bytecode::new_raw(code.clone())),
             nonce: "1".parse().unwrap(),
         };

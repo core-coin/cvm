@@ -1,4 +1,4 @@
-use crate::{keccak256, B256, KECCAK_EMPTY};
+use crate::{sha3, B256, KECCAK_EMPTY};
 use alloc::{sync::Arc, vec, vec::Vec};
 use bitvec::prelude::{bitvec, Lsb0};
 use bitvec::vec::BitVec;
@@ -66,7 +66,7 @@ impl Bytecode {
         let hash = if bytecode.is_empty() {
             KECCAK_EMPTY
         } else {
-            keccak256(&bytecode)
+            sha3(&bytecode)
         };
         Self {
             bytecode,
@@ -78,7 +78,7 @@ impl Bytecode {
     /// Create new raw Bytecode with hash
     ///
     /// # Safety
-    /// Hash need to be appropriate keccak256 over bytecode.
+    /// Hash need to be appropriate sha3 over bytecode.
     pub unsafe fn new_raw_with_hash(bytecode: Bytes, hash: B256) -> Self {
         Self {
             bytecode,
@@ -95,7 +95,7 @@ impl Bytecode {
     pub unsafe fn new_checked(bytecode: Bytes, len: usize, hash: Option<B256>) -> Self {
         let hash = match hash {
             None if len == 0 => KECCAK_EMPTY,
-            None => keccak256(&bytecode),
+            None => sha3(&bytecode),
             Some(hash) => hash,
         };
         Self {

@@ -23,7 +23,7 @@ use super::{
     models::{SpecName, TestSuit},
 };
 use hex_literal::hex;
-use revm::primitives::keccak256;
+use revm::primitives::sha3;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -157,7 +157,7 @@ pub fn execute_test_suit(
         for (address, info) in unit.pre.iter() {
             let acc_info = revm::primitives::AccountInfo {
                 balance: info.balance,
-                code_hash: keccak256(&info.code), // try with dummy hash.
+                code_hash: sha3(&info.code), // try with dummy hash.
                 code: Some(Bytecode::new_raw(info.code.clone())),
                 nonce: info.nonce,
             };

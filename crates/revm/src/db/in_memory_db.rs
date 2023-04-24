@@ -1,7 +1,7 @@
 use super::{DatabaseCommit, DatabaseRef};
 use crate::primitives::{
-    hash_map::Entry, keccak256, Account, AccountInfo, Bytecode, HashMap, Log, B176, B256,
-    KECCAK_EMPTY, U256,
+    hash_map::Entry, sha3, Account, AccountInfo, Bytecode, HashMap, Log, B176, B256, KECCAK_EMPTY,
+    U256,
 };
 use crate::Database;
 use alloc::vec::Vec;
@@ -352,7 +352,7 @@ impl DatabaseRef for EmptyDB {
 
     // History related
     fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
-        Ok(keccak256(&number.to_be_bytes::<{ U256::BYTES }>()))
+        Ok(sha3(&number.to_be_bytes::<{ U256::BYTES }>()))
     }
 }
 

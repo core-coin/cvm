@@ -4,7 +4,7 @@ use plain_hasher::PlainHasher;
 use primitive_types::H256;
 use revm::{
     db::DbAccount,
-    primitives::{keccak256, Log, B176, B256, U256},
+    primitives::{sha3, Log, B176, B256, U256},
 };
 use rlp::RlpStream;
 use sha3::{Digest, Keccak256};
@@ -27,7 +27,7 @@ pub fn log_rlp_hash(logs: Vec<Log>) -> B256 {
     stream.finalize_unbounded_list();
     let out = stream.out().freeze();
 
-    keccak256(&out)
+    sha3(&out)
 }
 
 pub fn state_merkle_trie_root(accounts: impl Iterator<Item = (B176, DbAccount)>) -> B256 {

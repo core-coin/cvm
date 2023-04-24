@@ -1,7 +1,7 @@
 use crate::{
     gas,
     interpreter::Interpreter,
-    primitives::{keccak256, Spec, SpecId::*, B256, KECCAK_EMPTY, U256},
+    primitives::{sha3 as hash_sha3, Spec, SpecId::*, B256, KECCAK_EMPTY, U256},
     Host, InstructionResult,
 };
 use core::cmp::min;
@@ -15,7 +15,7 @@ pub fn sha3(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     } else {
         let from = as_usize_or_fail!(interpreter, from, InstructionResult::InvalidOperandOOG);
         memory_resize!(interpreter, from, len);
-        keccak256(interpreter.memory.get_slice(from, len))
+        hash_sha3(interpreter.memory.get_slice(from, len))
     };
 
     push_b256!(interpreter, hash);
