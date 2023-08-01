@@ -13,6 +13,7 @@ use crate::primitives::{
 use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector};
 use alloc::vec::Vec;
 use core::{cmp::min, marker::PhantomData};
+use revm_interpreter::primitives::NetworkType;
 use revm_interpreter::{MAX_CODE_SIZE, MAX_INITCODE_SIZE};
 use revm_precompile::{Precompile, Precompiles};
 use std::cmp::Ordering;
@@ -28,6 +29,7 @@ pub struct EVMImpl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> {
     data: EVMData<'a, DB>,
     precompiles: Precompiles,
     inspector: &'a mut dyn Inspector<DB>,
+    network: NetworkType,
     _phantomdata: PhantomData<GSPEC>,
 }
 
@@ -290,6 +292,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         env: &'a mut Env,
         inspector: &'a mut dyn Inspector<DB>,
         precompiles: Precompiles,
+        network: NetworkType,
     ) -> Self {
         let journaled_state = if GSPEC::enabled(SpecId::SPURIOUS_DRAGON) {
             JournaledState::new(precompiles.len())
@@ -305,6 +308,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
             },
             precompiles,
             inspector,
+            network,
             _phantomdata: PhantomData {},
         }
     }
@@ -528,7 +532,9 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         let code_hash = sha3(&inputs.init_code);
         let created_address = match inputs.scheme {
             CreateScheme::Create => create_address(inputs.caller, old_nonce),
-            CreateScheme::Create2 { salt } => create2_address(inputs.caller, code_hash, salt),
+            CreateScheme::Create2 { salt } => {
+                create2_address(inputs.caller, code_hash, salt, &self.network)
+            }
         };
         let ret = Some(created_address);
 

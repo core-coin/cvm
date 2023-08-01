@@ -1,6 +1,7 @@
-use crate::{alloc::vec::Vec, SpecId, B176, B256, U256};
+use crate::{alloc::vec::Vec, NetworkType, SpecId, B176, B256, U256};
 use bytes::Bytes;
 use core::cmp::min;
+use ruint::Uint;
 
 #[derive(Clone, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -145,6 +146,21 @@ impl Default for CfgEnv {
             disable_eip3607: false,
             #[cfg(feature = "optional_gas_refund")]
             disable_gas_refund: false,
+        }
+    }
+}
+
+impl CfgEnv {
+    pub fn to_network(&self) -> NetworkType {
+        let mainnet: Uint<256, 4> = Uint::from(1);
+        let testnet: Uint<256, 4> = Uint::from(5);
+
+        if self.chain_id == mainnet {
+            NetworkType::Mainnet
+        } else if self.chain_id == testnet {
+            NetworkType::Testnet
+        } else {
+            NetworkType::Private
         }
     }
 }

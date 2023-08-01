@@ -17,6 +17,8 @@ fn test_send_ican() {
     // initialise an empty (default) EVM
     let mut evm = EVM::new();
 
+    evm.env.cfg.chain_id = 1;
+
     // initialise the database
     evm.database(InMemoryDB::default());
 
