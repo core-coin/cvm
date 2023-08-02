@@ -153,7 +153,7 @@ impl Default for CfgEnv {
 impl CfgEnv {
     pub fn to_network(&self) -> NetworkType {
         let mainnet: Uint<256, 4> = Uint::from(1);
-        let testnet: Uint<256, 4> = Uint::from(5);
+        let testnet: Uint<256, 4> = Uint::from(3);
 
         if self.chain_id == mainnet {
             NetworkType::Mainnet
