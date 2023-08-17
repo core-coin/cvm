@@ -40,7 +40,7 @@ impl From<CliEnv> for Env {
         local_fill!(env.tx.value, from.tx.value, U256::from);
         local_fill!(env.tx.data, from.tx.data);
         env.tx.gas_priority_fee = from.tx.gas_priority_fee.map(U256::from);
-        env.tx.chain_id = from.tx.chain_id;
+        env.tx.network_id = from.tx.network_id;
         env.tx.nonce = from.tx.nonce;
 
         env.tx.transact_to = if let Some(to) = from.tx.transact_to {
@@ -92,7 +92,7 @@ pub struct CliEnvTx {
     #[structopt(long = "env.tx.data", parse(try_from_str = parse_hex))]
     pub data: Option<Bytes>,
     #[structopt(long = "env.tx.chain_id")]
-    pub chain_id: Option<u64>,
+    pub network_id: Option<u64>,
     #[structopt(long = "env.tx.nonce")]
     pub nonce: Option<u64>,
     //#[structopt(long = "env.")]

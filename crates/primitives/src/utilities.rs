@@ -4,13 +4,34 @@ use sha3::{Digest, Sha3_256};
 use std::str::FromStr;
 
 const MAINNET: &str = "cb";
-const TESTNET: &str = "ab";
+const DEVIN: &str = "ab";
 const PRIVATE: &str = "ce";
 
-pub enum NetworkType {
-    Mainnet,
-    Testnet,
-    Private,
+#[repr(u64)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum Network {
+    Mainnet = 1,
+    Devin = 3,
+    Private(u64),
+}
+
+impl Network {
+    pub fn as_u64(&self) -> u64 {
+        match self {
+            Network::Mainnet => 1,
+            Network::Devin => 3,
+            Network::Private(n) => *n,
+        }
+    }
+
+    pub fn as_u256(&self) -> U256 {
+        match self {
+            Network::Mainnet => U256::from(1),
+            Network::Devin => U256::from(3),
+            Network::Private(n) => U256::from(*n),
+        }
+    }
 }
 
 pub const KECCAK_EMPTY: B256 = B256(hex!(
@@ -33,11 +54,11 @@ pub fn create_address(caller: B176, nonce: u64) -> B176 {
     let addr = B160(out[12..].try_into().unwrap());
 
     // Calculate the checksum and add the network prefix
-    to_ican(&addr, &NetworkType::Mainnet)
+    to_ican(&addr, &Network::Mainnet)
 }
 
 /// Returns the address for the `CREATE2` scheme: [`CreateScheme::Create2`]
-pub fn create2_address(caller: B176, code_hash: B256, salt: U256, network: &NetworkType) -> B176 {
+pub fn create2_address(caller: B176, code_hash: B256, salt: U256, network: &Network) -> B176 {
     let mut hasher = Sha3_256::new();
     hasher.update([0xff]);
     hasher.update(&caller[..]);
@@ -51,12 +72,12 @@ pub fn create2_address(caller: B176, code_hash: B256, salt: U256, network: &Netw
     to_ican(&addr, network)
 }
 
-fn to_ican(addr: &B160, network: &NetworkType) -> B176 {
+fn to_ican(addr: &B160, network: &Network) -> B176 {
     // Get the prefix str
     let prefix = match network {
-        NetworkType::Mainnet => MAINNET,
-        NetworkType::Testnet => TESTNET,
-        NetworkType::Private => PRIVATE,
+        Network::Mainnet => MAINNET,
+        Network::Devin => DEVIN,
+        Network::Private(_) => PRIVATE,
     };
 
     // Get the number string from the hex address
@@ -69,11 +90,11 @@ fn to_ican(addr: &B160, network: &NetworkType) -> B176 {
     construct_ican_address(prefix, &checksum, addr)
 }
 
-fn get_number_string(addr: &B160, network: &NetworkType) -> String {
+fn get_number_string(addr: &B160, network: &Network) -> String {
     let prefix = match network {
-        NetworkType::Mainnet => MAINNET,
-        NetworkType::Testnet => TESTNET,
-        NetworkType::Private => PRIVATE,
+        Network::Mainnet => MAINNET,
+        Network::Devin => DEVIN,
+        Network::Private(_) => PRIVATE,
     };
 
     // We have to use the Debug trait for addr https://github.com/paritytech/parity-common/issues/656
@@ -184,7 +205,7 @@ pub mod tests {
             caller,
             B256::repeat_byte(10),
             U256::from(239048),
-            &NetworkType::Mainnet,
+            &Network::Mainnet,
         );
 
         assert_eq!(
@@ -199,7 +220,7 @@ pub mod tests {
             caller,
             B256::repeat_byte(11),
             U256::from(239048),
-            &NetworkType::Mainnet,
+            &Network::Mainnet,
         );
 
         assert_eq!(
@@ -214,7 +235,7 @@ pub mod tests {
             caller,
             B256::repeat_byte(12),
             U256::from(239048),
-            &NetworkType::Mainnet,
+            &Network::Mainnet,
         );
 
         assert_eq!(
@@ -227,7 +248,7 @@ pub mod tests {
     #[test]
     fn test_get_number_string_address() {
         let address = B160::from_str("e8cF4629ACB360350399B6CFF367A97CF36E62B9").unwrap();
-        let number_str = get_number_string(&address, &NetworkType::Mainnet);
+        let number_str = get_number_string(&address, &Network::Mainnet);
         assert_eq!(
             number_str,
             String::from("1481215462910121136035039911612151536710971215361462119121100")
@@ -237,7 +258,7 @@ pub mod tests {
     #[test]
     fn test_calculate_checksum_address() {
         let address = B160::from_str("e8cF4629ACB360350399B6CFF367A97CF36E62B9").unwrap();
-        let number_str = get_number_string(&address, &NetworkType::Mainnet);
+        let number_str = get_number_string(&address, &Network::Mainnet);
         let checksum = calculate_checksum(&number_str);
         assert_eq!(checksum, 72u64);
     }

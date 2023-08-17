@@ -183,7 +183,7 @@ pub fn evm_inner<'a, DB: Database, const INSPECT: bool>(
     insp: &'a mut dyn Inspector<DB>,
 ) -> Box<dyn Transact<DB::Error> + 'a> {
     use specification::*;
-    let network = env.cfg.to_network();
+    let network = env.cfg.network;
     match env.cfg.spec_id {
         SpecId::FRONTIER | SpecId::FRONTIER_THAWING => {
             create_evm!(FrontierSpec, db, env, insp, network)

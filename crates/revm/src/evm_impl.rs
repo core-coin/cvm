@@ -13,7 +13,7 @@ use crate::primitives::{
 use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector};
 use alloc::vec::Vec;
 use core::{cmp::min, marker::PhantomData};
-use revm_interpreter::primitives::NetworkType;
+use revm_interpreter::primitives::Network;
 use revm_interpreter::{MAX_CODE_SIZE, MAX_INITCODE_SIZE};
 use revm_precompile::{Precompile, Precompiles};
 use std::cmp::Ordering;
@@ -29,7 +29,7 @@ pub struct EVMImpl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> {
     data: EVMData<'a, DB>,
     precompiles: Precompiles,
     inspector: &'a mut dyn Inspector<DB>,
-    network: NetworkType,
+    network: Network,
     _phantomdata: PhantomData<GSPEC>,
 }
 
@@ -102,8 +102,8 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
         }
 
         // Check if the transaction's chain id is correct
-        if let Some(tx_chain_id) = self.data.env.tx.chain_id {
-            if U256::from(tx_chain_id) != self.data.env.cfg.chain_id {
+        if let Some(tx_chain_id) = self.data.env.tx.network_id {
+            if U256::from(tx_chain_id) != self.data.env.cfg.network.as_u256() {
                 return Err(InvalidTransaction::InvalidChainId.into());
             }
         }
@@ -292,7 +292,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         env: &'a mut Env,
         inspector: &'a mut dyn Inspector<DB>,
         precompiles: Precompiles,
-        network: NetworkType,
+        network: Network,
     ) -> Self {
         let journaled_state = if GSPEC::enabled(SpecId::SPURIOUS_DRAGON) {
             JournaledState::new(precompiles.len())

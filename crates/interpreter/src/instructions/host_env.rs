@@ -2,11 +2,11 @@ use crate::{
     gas, interpreter::Interpreter, primitives::Spec, primitives::SpecId::*, Host, InstructionResult,
 };
 
-pub fn chainid<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
+pub fn network_id<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
     // EIP-1344: ChainID opcode
     check!(interpreter, SPEC::enabled(ISTANBUL));
     gas!(interpreter, gas::BASE);
-    push!(interpreter, host.env().cfg.chain_id);
+    push!(interpreter, host.env().cfg.network.as_u256());
 }
 
 pub fn coinbase(interpreter: &mut Interpreter, host: &mut dyn Host) {
