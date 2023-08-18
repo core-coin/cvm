@@ -23,7 +23,7 @@ use super::{
     models::{SpecName, TestSuit},
 };
 use hex_literal::hex;
-use revm::primitives::sha3;
+use revm::primitives::{sha3, Network};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -169,7 +169,7 @@ pub fn execute_test_suit(
         }
         let mut env = Env::default();
         // cfg env. SpecId is set down the road
-        env.cfg.chain_id = U256::from(1); // for mainnet
+        env.cfg.network = Network::Mainnet;
 
         // block env
         env.block.number = unit.env.current_number;

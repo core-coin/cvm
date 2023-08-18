@@ -1,4 +1,4 @@
-use crate::{alloc::vec::Vec, SpecId, B176, B256, U256};
+use crate::{alloc::vec::Vec, Network, SpecId, B176, B256, U256};
 use bytes::Bytes;
 use core::cmp::min;
 
@@ -39,7 +39,7 @@ pub struct TxEnv {
     pub value: U256,
     #[cfg_attr(feature = "serde", serde(with = "crate::utilities::serde_hex_bytes"))]
     pub data: Bytes,
-    pub chain_id: Option<u64>,
+    pub network_id: Option<u64>,
     pub nonce: Option<u64>,
     pub access_list: Vec<(B176, Vec<U256>)>,
 }
@@ -76,7 +76,7 @@ pub enum CreateScheme {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CfgEnv {
-    pub chain_id: U256,
+    pub network: Network,
     pub spec_id: SpecId,
     /// If all precompiles have some balance we can skip initially fetching them from the database.
     /// This is is not really needed on mainnet, and defaults to false, but in most cases it is
@@ -129,7 +129,30 @@ pub enum AnalysisKind {
 impl Default for CfgEnv {
     fn default() -> CfgEnv {
         CfgEnv {
-            chain_id: U256::from(1),
+            network: Network::Mainnet,
+            // For the CVM the target is Istanbul
+            spec_id: SpecId::ISTANBUL,
+            perf_all_precompiles_have_balance: false,
+            perf_analyse_created_bytecodes: Default::default(),
+            limit_contract_code_size: None,
+            #[cfg(feature = "memory_limit")]
+            memory_limit: 2u64.pow(32) - 1,
+            #[cfg(feature = "optional_balance_check")]
+            disable_balance_check: false,
+            #[cfg(feature = "optional_block_gas_limit")]
+            disable_block_gas_limit: false,
+            #[cfg(feature = "optional_eip3607")]
+            disable_eip3607: false,
+            #[cfg(feature = "optional_gas_refund")]
+            disable_gas_refund: false,
+        }
+    }
+}
+
+impl CfgEnv {
+    pub fn new_with_netowork(network: Network) -> CfgEnv {
+        CfgEnv {
+            network,
             // For the CVM the target is Istanbul
             spec_id: SpecId::ISTANBUL,
             perf_all_precompiles_have_balance: false,
@@ -173,7 +196,7 @@ impl Default for TxEnv {
             transact_to: TransactTo::Call(B176::zero()), //will do nothing
             value: U256::ZERO,
             data: Bytes::new(),
-            chain_id: None,
+            network_id: None,
             nonce: None,
             access_list: Vec::new(),
         }

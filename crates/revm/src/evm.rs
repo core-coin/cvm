@@ -143,12 +143,13 @@ impl<DB> EVM<DB> {
 }
 
 macro_rules! create_evm {
-    ($spec:ident, $db:ident,$env:ident,$inspector:ident) => {
+    ($spec:ident, $db:ident,$env:ident,$inspector:ident,$network:ident) => {
         Box::new(EVMImpl::<'a, $spec, DB, INSPECT>::new(
             $db,
             $env,
             $inspector,
             Precompiles::new(to_precompile_id($spec::SPEC_ID)).clone(),
+            $network,
         )) as Box<dyn Transact<DB::Error> + 'a>
     };
 }
@@ -182,21 +183,28 @@ pub fn evm_inner<'a, DB: Database, const INSPECT: bool>(
     insp: &'a mut dyn Inspector<DB>,
 ) -> Box<dyn Transact<DB::Error> + 'a> {
     use specification::*;
+    let network = env.cfg.network;
     match env.cfg.spec_id {
-        SpecId::FRONTIER | SpecId::FRONTIER_THAWING => create_evm!(FrontierSpec, db, env, insp),
-        SpecId::HOMESTEAD | SpecId::DAO_FORK => create_evm!(HomesteadSpec, db, env, insp),
-        SpecId::TANGERINE => create_evm!(TangerineSpec, db, env, insp),
-        SpecId::SPURIOUS_DRAGON => create_evm!(SpuriousDragonSpec, db, env, insp),
-        SpecId::BYZANTIUM => create_evm!(ByzantiumSpec, db, env, insp),
-        SpecId::PETERSBURG | SpecId::CONSTANTINOPLE => create_evm!(PetersburgSpec, db, env, insp),
-        SpecId::ISTANBUL | SpecId::MUIR_GLACIER => create_evm!(IstanbulSpec, db, env, insp),
-        SpecId::BERLIN => create_evm!(BerlinSpec, db, env, insp),
-        SpecId::LONDON | SpecId::ARROW_GLACIER | SpecId::GRAY_GLACIER => {
-            create_evm!(LondonSpec, db, env, insp)
+        SpecId::FRONTIER | SpecId::FRONTIER_THAWING => {
+            create_evm!(FrontierSpec, db, env, insp, network)
         }
-        SpecId::MERGE => create_evm!(MergeSpec, db, env, insp),
-        SpecId::SHANGHAI => create_evm!(ShanghaiSpec, db, env, insp),
-        SpecId::CANCUN => create_evm!(LatestSpec, db, env, insp),
-        SpecId::LATEST => create_evm!(LatestSpec, db, env, insp),
+        SpecId::HOMESTEAD | SpecId::DAO_FORK => create_evm!(HomesteadSpec, db, env, insp, network),
+        SpecId::TANGERINE => create_evm!(TangerineSpec, db, env, insp, network),
+        SpecId::SPURIOUS_DRAGON => create_evm!(SpuriousDragonSpec, db, env, insp, network),
+        SpecId::BYZANTIUM => create_evm!(ByzantiumSpec, db, env, insp, network),
+        SpecId::PETERSBURG | SpecId::CONSTANTINOPLE => {
+            create_evm!(PetersburgSpec, db, env, insp, network)
+        }
+        SpecId::ISTANBUL | SpecId::MUIR_GLACIER => {
+            create_evm!(IstanbulSpec, db, env, insp, network)
+        }
+        SpecId::BERLIN => create_evm!(BerlinSpec, db, env, insp, network),
+        SpecId::LONDON | SpecId::ARROW_GLACIER | SpecId::GRAY_GLACIER => {
+            create_evm!(LondonSpec, db, env, insp, network)
+        }
+        SpecId::MERGE => create_evm!(MergeSpec, db, env, insp, network),
+        SpecId::SHANGHAI => create_evm!(ShanghaiSpec, db, env, insp, network),
+        SpecId::CANCUN => create_evm!(LatestSpec, db, env, insp, network),
+        SpecId::LATEST => create_evm!(LatestSpec, db, env, insp, network),
     }
 }
