@@ -55,6 +55,12 @@ impl From<primitive_types::H160> for B160 {
     }
 }
 
+impl From<primitive_types::H176> for B176 {
+    fn from(fr: primitive_types::H176) -> Self {
+        B176(fr.0)
+    }
+}
+
 // impl From<primitive_types::H160> for B176 {
 //     fn from(fr: primitive_types::H160) -> Self {
 //         B176(fr.0)
@@ -70,6 +76,12 @@ impl From<primitive_types::H256> for B256 {
 impl From<B160> for primitive_types::H160 {
     fn from(fr: B160) -> Self {
         primitive_types::H160(fr.0)
+    }
+}
+
+impl From<B176> for primitive_types::H176 {
+    fn from(fr: B176) -> Self {
+        primitive_types::H176(fr.0)
     }
 }
 
