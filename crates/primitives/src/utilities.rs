@@ -38,8 +38,8 @@ impl From<u64> for Network {
     fn from(id: u64) -> Self {
         match id {
             1 => Network::Mainnet,
-            3 =>Network::Devin,
-            n => Network::Private(n)
+            3 => Network::Devin,
+            n => Network::Private(n),
         }
     }
 }
