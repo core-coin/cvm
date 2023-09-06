@@ -34,6 +34,16 @@ impl Network {
     }
 }
 
+impl From<u64> for Network {
+    fn from(id: u64) -> Self {
+        match id {
+            1 => Network::Mainnet,
+            3 =>Network::Devin,
+            n => Network::Private(n)
+        }
+    }
+}
+
 pub const KECCAK_EMPTY: B256 = B256(hex!(
     "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
 ));
