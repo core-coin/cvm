@@ -16,7 +16,7 @@ pub enum InstructionResult {
     OutOfFund = 0x22,
 
     // error codes
-    OutOfGas = 0x50,
+    OutOfEnergy = 0x50,
     MemoryOOG = 0x51,
     MemoryLimitOOG = 0x52,
     PrecompileOOG = 0x53,
@@ -98,20 +98,20 @@ impl From<InstructionResult> for SuccessOrHalt {
             InstructionResult::Revert => Self::Revert,
             InstructionResult::CallTooDeep => Self::Halt(Halt::CallTooDeep), // not gonna happen for first call
             InstructionResult::OutOfFund => Self::Halt(Halt::OutOfFund), // Check for first call is done separately.
-            InstructionResult::OutOfGas => Self::Halt(Halt::OutOfGas(
-                revm_primitives::OutOfGasError::BasicOutOfGas,
+            InstructionResult::OutOfEnergy => Self::Halt(Halt::OutOfEnergy(
+                revm_primitives::OutOfEnergyError::BasicOutOfEnergy,
             )),
-            InstructionResult::MemoryLimitOOG => {
-                Self::Halt(Halt::OutOfGas(revm_primitives::OutOfGasError::MemoryLimit))
-            }
+            InstructionResult::MemoryLimitOOG => Self::Halt(Halt::OutOfEnergy(
+                revm_primitives::OutOfEnergyError::MemoryLimit,
+            )),
             InstructionResult::MemoryOOG => {
-                Self::Halt(Halt::OutOfGas(revm_primitives::OutOfGasError::Memory))
+                Self::Halt(Halt::OutOfEnergy(revm_primitives::OutOfEnergyError::Memory))
             }
-            InstructionResult::PrecompileOOG => {
-                Self::Halt(Halt::OutOfGas(revm_primitives::OutOfGasError::Precompile))
-            }
-            InstructionResult::InvalidOperandOOG => Self::Halt(Halt::OutOfGas(
-                revm_primitives::OutOfGasError::InvalidOperand,
+            InstructionResult::PrecompileOOG => Self::Halt(Halt::OutOfEnergy(
+                revm_primitives::OutOfEnergyError::Precompile,
+            )),
+            InstructionResult::InvalidOperandOOG => Self::Halt(Halt::OutOfEnergy(
+                revm_primitives::OutOfEnergyError::InvalidOperand,
             )),
             InstructionResult::OpcodeNotFound => Self::Halt(Halt::OpcodeNotFound),
             InstructionResult::CallNotAllowedInsideStatic => {

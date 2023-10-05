@@ -18,11 +18,11 @@ macro_rules! check {
     };
 }
 
-macro_rules! gas {
-    ($interp:expr, $gas:expr) => {
-        if crate::USE_GAS {
-            if !$interp.gas.record_cost(($gas)) {
-                $interp.instruction_result = InstructionResult::OutOfGas;
+macro_rules! energy {
+    ($interp:expr, $energy:expr) => {
+        if crate::USE_ENERGY {
+            if !$interp.energy.record_cost(($energy)) {
+                $interp.instruction_result = InstructionResult::OutOfEnergy;
                 return;
             }
         }
@@ -30,20 +30,20 @@ macro_rules! gas {
 }
 
 macro_rules! refund {
-    ($interp:expr, $gas:expr) => {{
-        if crate::USE_GAS {
-            $interp.gas.gas_refund($gas);
+    ($interp:expr, $energy:expr) => {{
+        if crate::USE_ENERGY {
+            $interp.energy.energy_refund($energy);
         }
     }};
 }
 
-macro_rules! gas_or_fail {
-    ($interp:expr, $gas:expr) => {
-        if crate::USE_GAS {
-            match $gas {
-                Some(gas_used) => gas!($interp, gas_used),
+macro_rules! energy_or_fail {
+    ($interp:expr, $energy:expr) => {
+        if crate::USE_ENERGY {
+            match $energy {
+                Some(energy_used) => energy!($interp, energy_used),
                 None => {
-                    $interp.instruction_result = InstructionResult::OutOfGas;
+                    $interp.instruction_result = InstructionResult::OutOfEnergy;
                     return;
                 }
             }
@@ -65,9 +65,12 @@ macro_rules! memory_resize {
             }
 
             if new_size > $interp.memory.len() {
-                if crate::USE_GAS {
+                if crate::USE_ENERGY {
                     let num_bytes = new_size / 32;
-                    if !$interp.gas.record_memory(crate::gas::memory_gas(num_bytes)) {
+                    if !$interp
+                        .energy
+                        .record_memory(crate::energy::memory_energy(num_bytes))
+                    {
                         $interp.instruction_result = InstructionResult::MemoryLimitOOG;
                         return;
                     }

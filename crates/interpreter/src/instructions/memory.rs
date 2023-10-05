@@ -1,7 +1,7 @@
-use crate::{gas, interpreter::Interpreter, primitives::U256, Host, InstructionResult};
+use crate::{energy, interpreter::Interpreter, primitives::U256, Host, InstructionResult};
 
 pub fn mload(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::VERYLOW);
+    energy!(interpreter, energy::VERYLOW);
     pop!(interpreter, index);
     let index = as_usize_or_fail!(interpreter, index, InstructionResult::InvalidOperandOOG);
     memory_resize!(interpreter, index, 32);
@@ -14,7 +14,7 @@ pub fn mload(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 }
 
 pub fn mstore(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::VERYLOW);
+    energy!(interpreter, energy::VERYLOW);
     pop!(interpreter, index, value);
     let index = as_usize_or_fail!(interpreter, index, InstructionResult::InvalidOperandOOG);
     memory_resize!(interpreter, index, 32);
@@ -22,7 +22,7 @@ pub fn mstore(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 }
 
 pub fn mstore8(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::VERYLOW);
+    energy!(interpreter, energy::VERYLOW);
     pop!(interpreter, index, value);
     let index = as_usize_or_fail!(interpreter, index, InstructionResult::InvalidOperandOOG);
     memory_resize!(interpreter, index, 1);
@@ -32,6 +32,6 @@ pub fn mstore8(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 }
 
 pub fn msize(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::BASE);
+    energy!(interpreter, energy::BASE);
     push!(interpreter, U256::from(interpreter.memory.effective_len()));
 }

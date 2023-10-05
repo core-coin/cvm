@@ -91,8 +91,7 @@ pub enum SpecId {
     HOMESTEAD = 0,
     BYZANTIUM = 1,
     ISTANBUL = 2,
-    BERLIN = 3,
-    LATEST = 4,
+    LATEST = 3,
 }
 
 impl SpecId {
@@ -104,10 +103,7 @@ impl SpecId {
                 Self::HOMESTEAD
             }
             BYZANTIUM | CONSTANTINOPLE | PETERSBURG => Self::BYZANTIUM,
-            ISTANBUL | MUIR_GLACIER => Self::ISTANBUL,
-            BERLIN | LONDON | ARROW_GLACIER | GRAY_GLACIER | MERGE | SHANGHAI | CANCUN => {
-                Self::BERLIN
-            }
+            ISTANBUL => Self::ISTANBUL,
             LATEST => Self::LATEST,
         }
     }
@@ -163,7 +159,7 @@ impl Precompiles {
                 vec![
                     // EIP-152: Add BLAKE2 compression function `F` precompile.
                     blake2::FUN,
-                    // EIP-1108: Reduce alt_bn128 precompile gas costs.
+                    // EIP-1108: Reduce alt_bn128 precompile energy costs.
                     bn128::add::ISTANBUL,
                     bn128::mul::ISTANBUL,
                     bn128::pair::ISTANBUL,
@@ -175,24 +171,8 @@ impl Precompiles {
         })
     }
 
-    pub fn berlin() -> &'static Self {
-        static INSTANCE: OnceCell<Precompiles> = OnceCell::new();
-        INSTANCE.get_or_init(|| {
-            let mut precompiles = Self::istanbul().clone();
-            precompiles.fun.extend(
-                vec![
-                    // EIP-2565: ModExp Gas Cost.
-                    modexp::BERLIN,
-                ]
-                .into_iter()
-                .map(From::from),
-            );
-            precompiles
-        })
-    }
-
     pub fn latest() -> &'static Self {
-        Self::berlin()
+        Self::istanbul()
     }
 
     pub fn new(spec: SpecId) -> &'static Self {
@@ -200,7 +180,6 @@ impl Precompiles {
             SpecId::HOMESTEAD => Self::homestead(),
             SpecId::BYZANTIUM => Self::byzantium(),
             SpecId::ISTANBUL => Self::istanbul(),
-            SpecId::BERLIN => Self::berlin(),
             SpecId::LATEST => Self::latest(),
         }
     }

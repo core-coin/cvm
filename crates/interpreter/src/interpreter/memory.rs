@@ -51,7 +51,7 @@ impl Memory {
     }
 
     /// Resize the memory. asume that we already checked if
-    /// we have enought gas to resize this vector and that we made new_size as multiply of 32
+    /// we have enought energy to resize this vector and that we made new_size as multiply of 32
     pub fn resize(&mut self, new_size: usize) {
         self.data.resize(new_size, 0);
     }

@@ -1,6 +1,6 @@
 use crate::interpreter::{
-    analysis::to_analysed, gas, instruction_result::SuccessOrHalt, return_ok, return_revert,
-    CallContext, CallInputs, CallScheme, Contract, CreateInputs, CreateScheme, Gas, Host,
+    analysis::to_analysed, energy, instruction_result::SuccessOrHalt, return_ok, return_revert,
+    CallContext, CallInputs, CallScheme, Contract, CreateInputs, CreateScheme, Host,
     InstructionResult, Interpreter, SelfDestructResult, Transfer, CALL_STACK_LIMIT,
 };
 use crate::primitives::{
@@ -13,8 +13,9 @@ use crate::primitives::{
 use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector};
 use alloc::vec::Vec;
 use core::{cmp::min, marker::PhantomData};
+use revm_interpreter::energy::Energy;
 use revm_interpreter::primitives::Network;
-use revm_interpreter::{MAX_CODE_SIZE, MAX_INITCODE_SIZE};
+use revm_interpreter::MAX_CODE_SIZE;
 use revm_precompile::{Precompile, Precompiles};
 use std::cmp::Ordering;
 
@@ -35,7 +36,7 @@ pub struct EVMImpl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> {
 
 pub trait Transact<DBError> {
     /// Do transaction.
-    /// InstructionResult InstructionResult, Output for call or Address if we are creating contract, gas spend, gas refunded, State that needs to be applied.
+    /// InstructionResult InstructionResult, Output for call or Address if we are creating contract, energy spend, energy refunded, State that needs to be applied.
     fn transact(&mut self) -> EVMResult<DBError>;
 }
 
@@ -46,39 +47,19 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
         let caller = self.data.env.tx.caller;
         let value = self.data.env.tx.value;
         let data = self.data.env.tx.data.clone();
-        let gas_limit = self.data.env.tx.gas_limit;
-        let effective_gas_price = self.data.env.effective_gas_price();
+        let energy_limit = self.data.env.tx.energy_limit;
+        let effective_energy_price = self.data.env.effective_energy_price();
 
-        if GSPEC::enabled(MERGE) && self.data.env.block.prevrandao.is_none() {
-            return Err(EVMError::PrevrandaoNotSet);
-        }
+        #[cfg(feature = "optional_block_energy_limit")]
+        let disable_block_energy_limit = self.env().cfg.disable_block_energy_limit;
+        #[cfg(not(feature = "optional_block_energy_limit"))]
+        let disable_block_energy_limit = false;
 
-        if GSPEC::enabled(LONDON) {
-            if let Some(priority_fee) = self.data.env.tx.gas_priority_fee {
-                if priority_fee > self.data.env.tx.gas_price {
-                    // or gas_max_fee for eip1559
-                    return Err(InvalidTransaction::GasMaxFeeGreaterThanPriorityFee.into());
-                }
-            }
-            let basefee = self.data.env.block.basefee;
-
-            // check minimal cost against basefee
-            // TODO maybe do this checks when creating evm. We already have all data there
-            // or should be move effective_gas_price inside transact fn
-            if effective_gas_price < basefee {
-                return Err(InvalidTransaction::GasPriceLessThanBasefee.into());
-            }
-            // check if priority fee is lower then max fee
-        }
-
-        #[cfg(feature = "optional_block_gas_limit")]
-        let disable_block_gas_limit = self.env().cfg.disable_block_gas_limit;
-        #[cfg(not(feature = "optional_block_gas_limit"))]
-        let disable_block_gas_limit = false;
-
-        // unusual to be found here, but check if gas_limit is more than block_gas_limit
-        if !disable_block_gas_limit && U256::from(gas_limit) > self.data.env.block.gas_limit {
-            return Err(InvalidTransaction::CallerGasLimitMoreThanBlock.into());
+        // unusual to be found here, but check if energy_limit is more than block_energy_limit
+        if !disable_block_energy_limit
+            && U256::from(energy_limit) > self.data.env.block.energy_limit
+        {
+            return Err(InvalidTransaction::CallerEnergyLimitMoreThanBlock.into());
         }
 
         // load acc
@@ -86,20 +67,6 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
             .journaled_state
             .load_account(caller, self.data.db)
             .map_err(EVMError::Database)?;
-
-        #[cfg(feature = "optional_eip3607")]
-        let disable_eip3607 = self.env().cfg.disable_eip3607;
-        #[cfg(not(feature = "optional_eip3607"))]
-        let disable_eip3607 = false;
-
-        // EIP-3607: Reject transactions from senders with deployed code
-        // This EIP is introduced after london but there was no colision in past
-        // so we can leave it enabled always
-        if !disable_eip3607
-            && self.data.journaled_state.account(caller).info.code_hash != KECCAK_EMPTY
-        {
-            return Err(InvalidTransaction::RejectCallerWithCode.into());
-        }
 
         // Check if the transaction's chain id is correct
         if let Some(tx_chain_id) = self.data.env.tx.network_id {
@@ -152,53 +119,44 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
             .info
             .balance;
 
-        let balance_check = U256::from(gas_limit)
-            .checked_mul(self.data.env.tx.gas_price)
-            .and_then(|gas_cost| gas_cost.checked_add(value))
+        let balance_check = U256::from(energy_limit)
+            .checked_mul(self.data.env.tx.energy_price)
+            .and_then(|energy_cost| energy_cost.checked_add(value))
             .ok_or(EVMError::Transaction(
                 InvalidTransaction::OverflowPaymentInTransaction,
             ))?;
 
-        // Check if account has enough balance for gas_limit*gas_price and value transfer.
+        // Check if account has enough balance for energy_limit*energy_price and value transfer.
         // Transfer will be done inside `*_inner` functions.
         if balance_check > *caller_balance && !disable_balance_check {
-            return Err(InvalidTransaction::LackOfFundForGasLimit {
-                gas_limit: balance_check,
+            return Err(InvalidTransaction::LackOfFundForEnergyLimit {
+                energy_limit: balance_check,
                 balance: *caller_balance,
             }
             .into());
         }
 
-        // Reduce gas_limit*gas_price amount of caller account.
+        // Reduce energy_limit*energy_price amount of caller account.
         // unwrap_or can only occur if disable_balance_check is enabled
         *caller_balance = caller_balance
-            .checked_sub(U256::from(gas_limit) * effective_gas_price)
+            .checked_sub(U256::from(energy_limit) * effective_energy_price)
             .unwrap_or(U256::ZERO);
 
-        let mut gas = Gas::new(gas_limit);
-        // record initial gas cost. if not using gas metering init will return.
-        if !gas.record_cost(self.initialization::<GSPEC>()?) {
-            return Err(InvalidTransaction::CallGasCostMoreThanGasLimit.into());
+        let mut energy = Energy::new(energy_limit);
+        // record initial energy cost. if not using energy metering init will return.
+        if !energy.record_cost(self.initialization::<GSPEC>()?) {
+            return Err(InvalidTransaction::CallEnergyCostMoreThanEnergyLimit.into());
         }
 
-        // record all as cost. Gas limit here is reduced by init cost of bytes and access lists.
-        let gas_limit = gas.remaining();
-        if crate::USE_GAS {
-            gas.record_cost(gas_limit);
-        }
-
-        // load coinbase
-        // EIP-3651: Warm COINBASE. Starts the `COINBASE` address warm
-        if GSPEC::enabled(SHANGHAI) {
-            self.data
-                .journaled_state
-                .load_account(self.data.env.block.coinbase, self.data.db)
-                .map_err(EVMError::Database)?;
+        // record all as cost. energy limit here is reduced by init cost of bytes and access lists.
+        let energy_limit = energy.remaining();
+        if crate::USE_ENERGY {
+            energy.record_cost(energy_limit);
         }
 
         // call inner handling of call/create
         // TODO can probably be refactored to look nicer.
-        let (exit_reason, ret_gas, output) = match self.data.env.tx.transact_to {
+        let (exit_reason, ret_energy, output) = match self.data.env.tx.transact_to {
             TransactTo::Call(address) => {
                 if self.data.journaled_state.inc_nonce(caller).is_some() {
                     let context = CallContext {
@@ -216,16 +174,16 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
                             value,
                         },
                         input: data,
-                        gas_limit,
+                        energy_limit,
                         context,
                         is_static: false,
                     };
-                    let (exit, gas, bytes) = self.call_inner(&mut call_input);
-                    (exit, gas, Output::Call(bytes))
+                    let (exit, energy, bytes) = self.call_inner(&mut call_input);
+                    (exit, energy, Output::Call(bytes))
                 } else {
                     (
                         InstructionResult::NonceOverflow,
-                        gas,
+                        energy,
                         Output::Call(Bytes::new()),
                     )
                 }
@@ -236,44 +194,47 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
                     scheme,
                     value,
                     init_code: data,
-                    gas_limit,
+                    energy_limit,
                 };
-                let (exit, address, ret_gas, bytes) = self.create_inner(&mut create_input);
-                (exit, ret_gas, Output::Create(bytes, address))
+                let (exit, address, ret_energy, bytes) = self.create_inner(&mut create_input);
+                (exit, ret_energy, Output::Create(bytes, address))
             }
         };
 
-        if crate::USE_GAS {
+        if crate::USE_ENERGY {
             match exit_reason {
                 return_ok!() => {
-                    gas.erase_cost(ret_gas.remaining());
-                    gas.record_refund(ret_gas.refunded());
+                    energy.erase_cost(ret_energy.remaining());
+                    energy.record_refund(ret_energy.refunded());
                 }
                 return_revert!() => {
-                    gas.erase_cost(ret_gas.remaining());
+                    energy.erase_cost(ret_energy.remaining());
                 }
                 _ => {}
             }
         }
 
-        let (state, logs, gas_used, gas_refunded) = self.finalize::<GSPEC>(caller, &gas);
+        let (state, logs, energy_used, energy_refunded) = self.finalize::<GSPEC>(caller, &energy);
 
         let result = match exit_reason.into() {
             SuccessOrHalt::Success(reason) => ExecutionResult::Success {
                 reason,
-                gas_used,
-                gas_refunded,
+                energy_used,
+                energy_refunded,
                 logs,
                 output,
             },
             SuccessOrHalt::Revert => ExecutionResult::Revert {
-                gas_used,
+                energy_used,
                 output: match output {
                     Output::Call(return_value) => return_value,
                     Output::Create(return_value, _) => return_value,
                 },
             },
-            SuccessOrHalt::Halt(reason) => ExecutionResult::Halt { reason, gas_used },
+            SuccessOrHalt::Halt(reason) => ExecutionResult::Halt {
+                reason,
+                energy_used,
+            },
             SuccessOrHalt::FatalExternalError => {
                 return Err(EVMError::Database(self.data.error.take().unwrap()))
             }
@@ -313,40 +274,38 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         }
     }
 
+    #[allow(clippy::extra_unused_type_parameters)]
     fn finalize<SPEC: Spec>(
         &mut self,
         caller: B176,
-        gas: &Gas,
+        energy: &Energy,
     ) -> (HashMap<B176, Account>, Vec<Log>, u64, u64) {
         let coinbase = self.data.env.block.coinbase;
-        let (gas_used, gas_refunded) = if crate::USE_GAS {
-            let effective_gas_price = self.data.env.effective_gas_price();
-            let basefee = self.data.env.block.basefee;
+        let (energy_used, energy_refunded) = if crate::USE_ENERGY {
+            let effective_energy_price = self.data.env.effective_energy_price();
 
-            #[cfg(feature = "optional_gas_refund")]
-            let disable_gas_refund = self.env().cfg.disable_gas_refund;
-            #[cfg(not(feature = "optional_gas_refund"))]
-            let disable_gas_refund = false;
+            #[cfg(feature = "optional_energy_refund")]
+            let disable_energy_refund = self.env().cfg.disable_energy_refund;
+            #[cfg(not(feature = "optional_energy_refund"))]
+            let disable_energy_refund = false;
 
-            let gas_refunded = if disable_gas_refund {
+            let energy_refunded = if disable_energy_refund {
                 0
             } else {
                 // EIP-3529: Reduction in refunds
-                let max_refund_quotient = if SPEC::enabled(LONDON) { 5 } else { 2 };
-                min(gas.refunded() as u64, gas.spend() / max_refund_quotient)
+                let max_refund_quotient = 2;
+                min(
+                    energy.refunded() as u64,
+                    energy.spend() / max_refund_quotient,
+                )
             };
             let acc_caller = self.data.journaled_state.state().get_mut(&caller).unwrap();
-            acc_caller.info.balance = acc_caller
-                .info
-                .balance
-                .saturating_add(effective_gas_price * U256::from(gas.remaining() + gas_refunded));
+            acc_caller.info.balance = acc_caller.info.balance.saturating_add(
+                effective_energy_price * U256::from(energy.remaining() + energy_refunded),
+            );
 
             // EIP-1559
-            let coinbase_gas_price = if SPEC::enabled(LONDON) {
-                effective_gas_price.saturating_sub(basefee)
-            } else {
-                effective_gas_price
-            };
+            let coinbase_energy_price = effective_energy_price;
 
             // TODO
             let _ = self
@@ -360,11 +319,10 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                 .state()
                 .get_mut(&coinbase)
                 .unwrap();
-            acc_coinbase.info.balance = acc_coinbase
-                .info
-                .balance
-                .saturating_add(coinbase_gas_price * U256::from(gas.spend() - gas_refunded));
-            (gas.spend() - gas_refunded, gas_refunded)
+            acc_coinbase.info.balance = acc_coinbase.info.balance.saturating_add(
+                coinbase_energy_price * U256::from(energy.spend() - energy_refunded),
+            );
+            (energy.spend() - energy_refunded, energy_refunded)
         } else {
             // touch coinbase
             // TODO return
@@ -396,7 +354,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
             }
         }
 
-        (new_state, logs, gas_used, gas_refunded)
+        (new_state, logs, energy_used, energy_refunded)
     }
 
     fn initialization<SPEC: Spec>(&mut self) -> Result<u64, EVMError<DB::Error>> {
@@ -404,46 +362,12 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         let input = &self.data.env.tx.data;
 
         // EIP-3860: Limit and meter initcode
-        let initcode_cost = if SPEC::enabled(SHANGHAI) && self.data.env.tx.transact_to.is_create() {
-            let initcode_len = self.data.env.tx.data.len();
-            if initcode_len > MAX_INITCODE_SIZE {
-                return Err(InvalidTransaction::CreateInitcodeSizeLimit.into());
-            }
-            if crate::USE_GAS {
-                gas::initcode_cost(initcode_len as u64)
-            } else {
-                0
-            }
-        } else {
-            0
-        };
+        let initcode_cost = 0;
 
-        if crate::USE_GAS {
+        if crate::USE_ENERGY {
             let zero_data_len = input.iter().filter(|v| **v == 0).count() as u64;
             let non_zero_data_len = input.len() as u64 - zero_data_len;
-            let (accessed_accounts, accessed_slots) = {
-                if SPEC::enabled(BERLIN) {
-                    let mut accessed_slots = 0_u64;
-
-                    for (address, slots) in self.data.env.tx.access_list.iter() {
-                        self.data
-                            .journaled_state
-                            .load_account(*address, self.data.db)
-                            .map_err(EVMError::Database)?;
-                        accessed_slots += slots.len() as u64;
-
-                        for slot in slots {
-                            self.data
-                                .journaled_state
-                                .sload(*address, *slot, self.data.db)
-                                .map_err(EVMError::Database)?;
-                        }
-                    }
-                    (self.data.env.tx.access_list.len() as u64, accessed_slots)
-                } else {
-                    (0, 0)
-                }
-            };
+            let (accessed_accounts, accessed_slots) = (0, 0);
 
             let transact = if is_create {
                 if SPEC::enabled(HOMESTEAD) {
@@ -456,15 +380,15 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                 21000
             };
 
-            // EIP-2028: Transaction data gas cost reduction
-            let gas_transaction_non_zero_data = if SPEC::enabled(ISTANBUL) { 16 } else { 68 };
+            // EIP-2028: Transaction data energy cost reduction
+            let energy_transaction_non_zero_data = if SPEC::enabled(ISTANBUL) { 16 } else { 68 };
 
             Ok(transact
                 + initcode_cost
-                + zero_data_len * gas::TRANSACTION_ZERO_DATA
-                + non_zero_data_len * gas_transaction_non_zero_data
-                + accessed_accounts * gas::ACCESS_LIST_ADDRESS
-                + accessed_slots * gas::ACCESS_LIST_STORAGE_KEY)
+                + zero_data_len * energy::TRANSACTION_ZERO_DATA
+                + non_zero_data_len * energy_transaction_non_zero_data
+                + accessed_accounts * energy::ACCESS_LIST_ADDRESS
+                + accessed_slots * energy::ACCESS_LIST_STORAGE_KEY)
         } else {
             Ok(0)
         }
@@ -473,18 +397,23 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
     fn create_inner(
         &mut self,
         inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Energy, Bytes) {
         // Call inspector
         if INSPECT {
-            let (ret, address, gas, out) = self.inspector.create(&mut self.data, inputs);
+            let (ret, address, energy, out) = self.inspector.create(&mut self.data, inputs);
             if ret != InstructionResult::Continue {
-                return self
-                    .inspector
-                    .create_end(&mut self.data, inputs, ret, address, gas, out);
+                return self.inspector.create_end(
+                    &mut self.data,
+                    inputs,
+                    ret,
+                    address,
+                    energy,
+                    out,
+                );
             }
         }
 
-        let gas = Gas::new(inputs.gas_limit);
+        let energy = Energy::new(inputs.energy_limit);
         self.load_account(inputs.caller);
 
         // Check depth of calls
@@ -493,7 +422,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                 inputs,
                 InstructionResult::CallTooDeep,
                 None,
-                gas,
+                energy,
                 Bytes::new(),
             );
         }
@@ -504,7 +433,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                     inputs,
                     InstructionResult::OutOfFund,
                     None,
-                    gas,
+                    energy,
                     Bytes::new(),
                 )
             }
@@ -514,7 +443,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                     inputs,
                     InstructionResult::FatalExternalError,
                     None,
-                    gas,
+                    energy,
                     Bytes::new(),
                 )
             }
@@ -525,7 +454,13 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         if let Some(nonce) = self.data.journaled_state.inc_nonce(inputs.caller) {
             old_nonce = nonce - 1;
         } else {
-            return self.create_end(inputs, InstructionResult::Return, None, gas, Bytes::new());
+            return self.create_end(
+                inputs,
+                InstructionResult::Return,
+                None,
+                energy,
+                Bytes::new(),
+            );
         }
 
         // Create address
@@ -556,7 +491,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                     inputs,
                     InstructionResult::CreateCollision,
                     ret,
-                    gas,
+                    energy,
                     Bytes::new(),
                 );
             }
@@ -566,7 +501,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                     inputs,
                     InstructionResult::FatalExternalError,
                     ret,
-                    gas,
+                    energy,
                     Bytes::new(),
                 );
             }
@@ -581,7 +516,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
             self.data.db,
         ) {
             self.data.journaled_state.checkpoint_revert(checkpoint);
-            return self.create_end(inputs, e, ret, gas, Bytes::new());
+            return self.create_end(inputs, e, ret, energy, Bytes::new());
         }
 
         // EIP-161: State trie clearing (invariant-preserving alternative)
@@ -594,7 +529,13 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         {
             // overflow
             self.data.journaled_state.checkpoint_revert(checkpoint);
-            return self.create_end(inputs, InstructionResult::Return, None, gas, Bytes::new());
+            return self.create_end(
+                inputs,
+                InstructionResult::Return,
+                None,
+                energy,
+                Bytes::new(),
+            );
         }
 
         // Create new interpreter and execute initcode
@@ -609,13 +550,13 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         #[cfg(feature = "memory_limit")]
         let mut interpreter = Interpreter::new_with_memory_limit(
             contract,
-            gas.limit(),
+            energy.limit(),
             false,
             self.data.env.cfg.memory_limit,
         );
 
         #[cfg(not(feature = "memory_limit"))]
-        let mut interpreter = Interpreter::new(contract, gas.limit(), false);
+        let mut interpreter = Interpreter::new(contract, energy.limit(), false);
 
         if INSPECT {
             self.inspector
@@ -627,22 +568,10 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
             interpreter.run::<Self, GSPEC>(self)
         };
         // Host error if present on execution\
-        let (ret, address, gas, out) = match exit_reason {
+        let (ret, address, energy, out) = match exit_reason {
             return_ok!() => {
-                // if ok, check contract creation limit and calculate gas deduction on output len.
+                // if ok, check contract creation limit and calculate energy deduction on output len.
                 let mut bytes = interpreter.return_value();
-
-                // EIP-3541: Reject new contract code starting with the 0xEF byte
-                if GSPEC::enabled(LONDON) && !bytes.is_empty() && bytes.first() == Some(&0xEF) {
-                    self.data.journaled_state.checkpoint_revert(checkpoint);
-                    return self.create_end(
-                        inputs,
-                        InstructionResult::CreateContractStartingWithEF,
-                        ret,
-                        interpreter.gas,
-                        bytes,
-                    );
-                }
 
                 // EIP-170: Contract code size limit
                 // By default limit is 0x6000 (~25kb)
@@ -660,24 +589,24 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                         inputs,
                         InstructionResult::CreateContractSizeLimit,
                         ret,
-                        interpreter.gas,
+                        interpreter.energy,
                         bytes,
                     );
                 }
-                if crate::USE_GAS {
-                    let gas_for_code = bytes.len() as u64 * gas::CODEDEPOSIT;
-                    if !interpreter.gas.record_cost(gas_for_code) {
-                        // record code deposit gas cost and check if we are out of gas.
-                        // EIP-2 point 3: If contract creation does not have enough gas to pay for the
-                        // final gas fee for adding the contract code to the state, the contract
-                        //  creation fails (i.e. goes out-of-gas) rather than leaving an empty contract.
+                if crate::USE_ENERGY {
+                    let energy_for_code = bytes.len() as u64 * energy::CODEDEPOSIT;
+                    if !interpreter.energy.record_cost(energy_for_code) {
+                        // record code deposit energy cost and check if we are out of energy.
+                        // EIP-2 point 3: If contract creation does not have enough energy to pay for the
+                        // final energy fee for adding the contract code to the state, the contract
+                        //  creation fails (i.e. goes out-of-energy) rather than leaving an empty contract.
                         if GSPEC::enabled(HOMESTEAD) {
                             self.data.journaled_state.checkpoint_revert(checkpoint);
                             return self.create_end(
                                 inputs,
-                                InstructionResult::OutOfGas,
+                                InstructionResult::OutOfEnergy,
                                 ret,
-                                interpreter.gas,
+                                interpreter.energy,
                                 bytes,
                             );
                         } else {
@@ -685,7 +614,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                         }
                     }
                 }
-                // if we have enough gas
+                // if we have enough energy
                 self.data.journaled_state.checkpoint_commit();
                 // Do analysis of bytecode straight away.
                 let bytecode = match self.data.env.cfg.perf_analyse_created_bytecodes {
@@ -697,20 +626,20 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                 self.data
                     .journaled_state
                     .set_code(created_address, bytecode);
-                (InstructionResult::Return, ret, interpreter.gas, bytes)
+                (InstructionResult::Return, ret, interpreter.energy, bytes)
             }
             _ => {
                 self.data.journaled_state.checkpoint_revert(checkpoint);
                 (
                     exit_reason,
                     ret,
-                    interpreter.gas,
+                    interpreter.energy,
                     interpreter.return_value(),
                 )
             }
         };
 
-        self.create_end(inputs, ret, address, gas, out)
+        self.create_end(inputs, ret, address, energy, out)
     }
 
     fn create_end(
@@ -718,28 +647,28 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         inputs: &CreateInputs,
         ret: InstructionResult,
         address: Option<B176>,
-        gas: Gas,
+        energy: Energy,
         out: Bytes,
-    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Energy, Bytes) {
         if INSPECT {
             self.inspector
-                .create_end(&mut self.data, inputs, ret, address, gas, out)
+                .create_end(&mut self.data, inputs, ret, address, energy, out)
         } else {
-            (ret, address, gas, out)
+            (ret, address, energy, out)
         }
     }
 
-    fn call_inner(&mut self, inputs: &mut CallInputs) -> (InstructionResult, Gas, Bytes) {
+    fn call_inner(&mut self, inputs: &mut CallInputs) -> (InstructionResult, Energy, Bytes) {
         // Call the inspector
         if INSPECT {
-            let (ret, gas, out) = self
+            let (ret, energy, out) = self
                 .inspector
                 .call(&mut self.data, inputs, inputs.is_static);
             if ret != InstructionResult::Continue {
                 return self.inspector.call_end(
                     &mut self.data,
                     inputs,
-                    gas,
+                    energy,
                     ret,
                     out,
                     inputs.is_static,
@@ -747,28 +676,28 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
             }
         }
 
-        let mut gas = Gas::new(inputs.gas_limit);
+        let mut energy = Energy::new(inputs.energy_limit);
         // Load account and get code. Account is now hot.
         let bytecode = if let Some((bytecode, _)) = self.code(inputs.contract) {
             bytecode
         } else {
-            return (InstructionResult::FatalExternalError, gas, Bytes::new());
+            return (InstructionResult::FatalExternalError, energy, Bytes::new());
         };
 
         // Check depth
         if self.data.journaled_state.depth() > CALL_STACK_LIMIT {
-            let (ret, gas, out) = (InstructionResult::CallTooDeep, gas, Bytes::new());
+            let (ret, energy, out) = (InstructionResult::CallTooDeep, energy, Bytes::new());
             if INSPECT {
                 return self.inspector.call_end(
                     &mut self.data,
                     inputs,
-                    gas,
+                    energy,
                     ret,
                     out,
                     inputs.is_static,
                 );
             } else {
-                return (ret, gas, out);
+                return (ret, energy, out);
             }
         }
 
@@ -789,45 +718,45 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
             self.data.db,
         ) {
             self.data.journaled_state.checkpoint_revert(checkpoint);
-            let (ret, gas, out) = (e, gas, Bytes::new());
+            let (ret, energy, out) = (e, energy, Bytes::new());
             if INSPECT {
                 return self.inspector.call_end(
                     &mut self.data,
                     inputs,
-                    gas,
+                    energy,
                     ret,
                     out,
                     inputs.is_static,
                 );
             } else {
-                return (ret, gas, out);
+                return (ret, energy, out);
             }
         }
 
         // Call precompiles
-        let (ret, gas, out) = if let Some(precompile) = self.precompiles.get(&inputs.contract) {
+        let (ret, energy, out) = if let Some(precompile) = self.precompiles.get(&inputs.contract) {
             let out = match precompile {
-                Precompile::Standard(fun) => fun(inputs.input.as_ref(), inputs.gas_limit),
-                Precompile::Custom(fun) => fun(inputs.input.as_ref(), inputs.gas_limit),
+                Precompile::Standard(fun) => fun(inputs.input.as_ref(), inputs.energy_limit),
+                Precompile::Custom(fun) => fun(inputs.input.as_ref(), inputs.energy_limit),
             };
             match out {
-                Ok((gas_used, data)) => {
-                    if !crate::USE_GAS || gas.record_cost(gas_used) {
+                Ok((energy_used, data)) => {
+                    if !crate::USE_ENERGY || energy.record_cost(energy_used) {
                         self.data.journaled_state.checkpoint_commit();
-                        (InstructionResult::Return, gas, Bytes::from(data))
+                        (InstructionResult::Return, energy, Bytes::from(data))
                     } else {
                         self.data.journaled_state.checkpoint_revert(checkpoint);
-                        (InstructionResult::PrecompileOOG, gas, Bytes::new())
+                        (InstructionResult::PrecompileOOG, energy, Bytes::new())
                     }
                 }
                 Err(e) => {
-                    let ret = if let precompile::Error::OutOfGas = e {
+                    let ret = if let precompile::Error::OutOfEnergy = e {
                         InstructionResult::PrecompileOOG
                     } else {
                         InstructionResult::PrecompileError
                     };
                     self.data.journaled_state.checkpoint_revert(checkpoint);
-                    (ret, gas, Bytes::new())
+                    (ret, energy, Bytes::new())
                 }
             }
         } else {
@@ -838,13 +767,13 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
             #[cfg(feature = "memory_limit")]
             let mut interpreter = Interpreter::new_with_memory_limit(
                 contract,
-                gas.limit(),
+                energy.limit(),
                 inputs.is_static,
                 self.data.env.cfg.memory_limit,
             );
 
             #[cfg(not(feature = "memory_limit"))]
-            let mut interpreter = Interpreter::new(contract, gas.limit(), inputs.is_static);
+            let mut interpreter = Interpreter::new(contract, energy.limit(), inputs.is_static);
 
             if INSPECT {
                 // create is always no static call.
@@ -863,14 +792,14 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                 self.data.journaled_state.checkpoint_revert(checkpoint);
             }
 
-            (exit_reason, interpreter.gas, interpreter.return_value())
+            (exit_reason, interpreter.energy, interpreter.return_value())
         };
 
         if INSPECT {
             self.inspector
-                .call_end(&mut self.data, inputs, gas, ret, out, inputs.is_static)
+                .call_end(&mut self.data, inputs, energy, ret, out, inputs.is_static)
         } else {
-            (ret, gas, out)
+            (ret, energy, out)
         }
     }
 }
@@ -1006,11 +935,11 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
     fn create(
         &mut self,
         inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Energy, Bytes) {
         self.create_inner(inputs)
     }
 
-    fn call(&mut self, inputs: &mut CallInputs) -> (InstructionResult, Gas, Bytes) {
+    fn call(&mut self, inputs: &mut CallInputs) -> (InstructionResult, Energy, Bytes) {
         self.call_inner(inputs)
     }
 }

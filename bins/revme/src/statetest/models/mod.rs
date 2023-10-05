@@ -38,7 +38,7 @@ pub struct Test {
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct TxPartIndices {
     pub data: usize,
-    pub gas: usize,
+    pub energy: usize,
     pub value: usize,
 }
 
@@ -61,12 +61,11 @@ pub struct Env {
     #[serde(default, deserialize_with = "deserialize_str_as_u256")]
     pub current_difficulty: U256,
     #[serde(deserialize_with = "deserialize_str_as_u256")]
-    pub current_gas_limit: U256,
+    pub current_energy_limit: U256,
     #[serde(deserialize_with = "deserialize_str_as_u256")]
     pub current_number: U256,
     #[serde(deserialize_with = "deserialize_str_as_u256")]
     pub current_timestamp: U256,
-    pub current_base_fee: Option<U256>,
     pub previous_hash: B256,
 }
 
@@ -76,15 +75,13 @@ pub struct TransactionParts {
     #[serde(deserialize_with = "deserialize_vec_as_vec_bytes")]
     pub data: Vec<Bytes>,
     pub access_lists: Option<Vec<Option<AccessList>>>,
-    pub gas_limit: Vec<U256>,
-    pub gas_price: Option<U256>,
+    pub energy_limit: Vec<U256>,
+    pub energy_price: Option<U256>,
     pub nonce: U256,
     pub secret_key: Option<B256>,
     #[serde(deserialize_with = "deserialize_maybe_empty")]
     pub to: Option<B176>,
     pub value: Vec<U256>,
-    pub max_fee_per_gas: Option<U256>,
-    pub max_priority_fee_per_gas: Option<U256>,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize, Clone)]

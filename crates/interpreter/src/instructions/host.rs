@@ -1,8 +1,7 @@
 use crate::primitives::{Bytes, Spec, SpecId::*, B176, B256, U256};
-use crate::MAX_INITCODE_SIZE;
 use crate::{
     alloc::vec::Vec,
-    gas::{self, COLD_ACCOUNT_ACCESS_COST, WARM_STORAGE_READ_COST},
+    energy::{self},
     interpreter::Interpreter,
     return_ok, return_revert, CallContext, CallInputs, CallScheme, CreateInputs, CreateScheme,
     Host, InstructionResult, Transfer,
@@ -16,12 +15,12 @@ pub fn balance<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
         interpreter.instruction_result = InstructionResult::FatalExternalError;
         return;
     }
-    let (balance, is_cold) = ret.unwrap();
-    gas!(
+    let (balance, _is_cold) = ret.unwrap();
+    energy!(
         interpreter,
         if SPEC::enabled(ISTANBUL) {
             // EIP-1884: Repricing for trie-size-dependent opcodes
-            gas::account_access_gas::<SPEC>(is_cold)
+            energy::account_access_energy::<SPEC>()
         } else if SPEC::enabled(TANGERINE) {
             400
         } else {
@@ -34,7 +33,7 @@ pub fn balance<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
 pub fn selfbalance<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
     // EIP-1884: Repricing for trie-size-dependent opcodes
     check!(interpreter, SPEC::enabled(ISTANBUL));
-    gas!(interpreter, gas::LOW);
+    energy!(interpreter, energy::LOW);
     let ret = host.balance(interpreter.contract.address);
     if ret.is_none() {
         interpreter.instruction_result = InstructionResult::FatalExternalError;
@@ -51,20 +50,12 @@ pub fn extcodesize<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Hos
         interpreter.instruction_result = InstructionResult::FatalExternalError;
         return;
     }
-    let (code, is_cold) = ret.unwrap();
-    if SPEC::enabled(BERLIN) {
-        gas!(
-            interpreter,
-            if is_cold {
-                COLD_ACCOUNT_ACCESS_COST
-            } else {
-                WARM_STORAGE_READ_COST
-            }
-        );
-    } else if SPEC::enabled(TANGERINE) {
-        gas!(interpreter, 700);
+    let (code, _is_cold) = ret.unwrap();
+
+    if SPEC::enabled(TANGERINE) {
+        energy!(interpreter, 700);
     } else {
-        gas!(interpreter, 20);
+        energy!(interpreter, 20);
     }
 
     push!(interpreter, U256::from(code.len()));
@@ -78,20 +69,11 @@ pub fn extcodehash<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Hos
         interpreter.instruction_result = InstructionResult::FatalExternalError;
         return;
     }
-    let (code_hash, is_cold) = ret.unwrap();
-    if SPEC::enabled(BERLIN) {
-        gas!(
-            interpreter,
-            if is_cold {
-                COLD_ACCOUNT_ACCESS_COST
-            } else {
-                WARM_STORAGE_READ_COST
-            }
-        );
-    } else if SPEC::enabled(ISTANBUL) {
-        gas!(interpreter, 700);
+    let (code_hash, _is_cold) = ret.unwrap();
+    if SPEC::enabled(ISTANBUL) {
+        energy!(interpreter, 700);
     } else {
-        gas!(interpreter, 400);
+        energy!(interpreter, 400);
     }
     push_b256!(interpreter, code_hash);
 }
@@ -105,13 +87,10 @@ pub fn extcodecopy<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Hos
         interpreter.instruction_result = InstructionResult::FatalExternalError;
         return;
     }
-    let (code, is_cold) = ret.unwrap();
+    let (code, _is_cold) = ret.unwrap();
 
     let len = as_usize_or_fail!(interpreter, len_u256, InstructionResult::InvalidOperandOOG);
-    gas_or_fail!(
-        interpreter,
-        gas::extcodecopy_cost::<SPEC>(len as u64, is_cold)
-    );
+    energy_or_fail!(interpreter, energy::extcodecopy_cost::<SPEC>(len as u64));
     if len == 0 {
         return;
     }
@@ -130,7 +109,7 @@ pub fn extcodecopy<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Hos
 }
 
 pub fn blockhash(interpreter: &mut Interpreter, host: &mut dyn Host) {
-    gas!(interpreter, gas::BLOCKHASH);
+    energy!(interpreter, energy::BLOCKHASH);
     pop_top!(interpreter, number);
 
     if let Some(diff) = host.env().block.number.checked_sub(*number) {
@@ -158,7 +137,7 @@ pub fn sload<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
         return;
     }
     let (value, is_cold) = ret.unwrap();
-    gas!(interpreter, gas::sload_cost::<SPEC>(is_cold));
+    energy!(interpreter, energy::sload_cost::<SPEC>(is_cold));
     push!(interpreter, value);
 }
 
@@ -172,11 +151,14 @@ pub fn sstore<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
         return;
     }
     let (original, old, new, is_cold) = ret.unwrap();
-    gas_or_fail!(interpreter, {
-        let remaining_gas = interpreter.gas.remaining();
-        gas::sstore_cost::<SPEC>(original, old, new, remaining_gas, is_cold)
+    energy_or_fail!(interpreter, {
+        let remaining_energy = interpreter.energy.remaining();
+        energy::sstore_cost::<SPEC>(original, old, new, remaining_energy, is_cold)
     });
-    refund!(interpreter, gas::sstore_refund::<SPEC>(original, old, new));
+    refund!(
+        interpreter,
+        energy::sstore_refund::<SPEC>(original, old, new)
+    );
 }
 
 pub fn log<const N: u8>(interpreter: &mut Interpreter, host: &mut dyn Host) {
@@ -184,7 +166,7 @@ pub fn log<const N: u8>(interpreter: &mut Interpreter, host: &mut dyn Host) {
 
     pop!(interpreter, offset, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
-    gas_or_fail!(interpreter, gas::log_cost(N, len as u64));
+    energy_or_fail!(interpreter, energy::log_cost(N, len as u64));
     let data = if len == 0 {
         Bytes::new()
     } else {
@@ -220,11 +202,7 @@ pub fn selfdestruct<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Ho
     }
     let res = res.unwrap();
 
-    // EIP-3529: Reduction in refunds
-    if !SPEC::enabled(LONDON) && !res.previously_destroyed {
-        refund!(interpreter, gas::SELFDESTRUCT)
-    }
-    gas!(interpreter, gas::selfdestruct_cost::<SPEC>(res));
+    energy!(interpreter, energy::selfdestruct_cost::<SPEC>(res));
 
     interpreter.instruction_result = InstructionResult::SelfDestruct;
 }
@@ -252,45 +230,37 @@ pub fn create<const IS_CREATE2: bool, SPEC: Spec>(
             code_offset,
             InstructionResult::InvalidOperandOOG
         );
-        // EIP-3860: Limit and meter initcode
-        if SPEC::enabled(SHANGHAI) {
-            if len > MAX_INITCODE_SIZE {
-                interpreter.instruction_result = InstructionResult::CreateInitcodeSizeLimit;
-                return;
-            }
-            gas!(interpreter, gas::initcode_cost(len as u64));
-        }
         memory_resize!(interpreter, code_offset, len);
         Bytes::copy_from_slice(interpreter.memory.get_slice(code_offset, len))
     };
 
     let scheme = if IS_CREATE2 {
         pop!(interpreter, salt);
-        gas_or_fail!(interpreter, gas::create2_cost(len));
+        energy_or_fail!(interpreter, energy::create2_cost(len));
         CreateScheme::Create2 { salt }
     } else {
-        gas!(interpreter, gas::CREATE);
+        energy!(interpreter, energy::CREATE);
         CreateScheme::Create
     };
 
-    let mut gas_limit = interpreter.gas().remaining();
+    let mut energy_limit = interpreter.energy().remaining();
 
-    // EIP-150: Gas cost changes for IO-heavy operations
+    // EIP-150: Energy cost changes for IO-heavy operations
     if SPEC::enabled(TANGERINE) {
-        // take remaining gas and deduce l64 part of it.
-        gas_limit -= gas_limit / 64
+        // take remaining energy and deduce l64 part of it.
+        energy_limit -= energy_limit / 64
     }
-    gas!(interpreter, gas_limit);
+    energy!(interpreter, energy_limit);
 
     let mut create_input = CreateInputs {
         caller: interpreter.contract.address,
         scheme,
         value,
         init_code: code,
-        gas_limit,
+        energy_limit,
     };
 
-    let (return_reason, address, gas, return_data) = host.create(&mut create_input);
+    let (return_reason, address, energy, return_data) = host.create(&mut create_input);
     interpreter.return_data_buffer = match return_reason {
         // Save data to return data buffer if the create reverted
         return_revert!() => return_data,
@@ -301,15 +271,15 @@ pub fn create<const IS_CREATE2: bool, SPEC: Spec>(
     match return_reason {
         return_ok!() => {
             push_b256!(interpreter, address.unwrap_or_default().into());
-            if crate::USE_GAS {
-                interpreter.gas.erase_cost(gas.remaining());
-                interpreter.gas.record_refund(gas.refunded());
+            if crate::USE_ENERGY {
+                interpreter.energy.erase_cost(energy.remaining());
+                interpreter.energy.record_refund(energy.refunded());
             }
         }
         return_revert!() => {
             push_b256!(interpreter, B256::zero());
-            if crate::USE_GAS {
-                interpreter.gas.erase_cost(gas.remaining());
+            if crate::USE_ENERGY {
+                interpreter.energy.erase_cost(energy.remaining());
             }
         }
         InstructionResult::FatalExternalError => {
@@ -349,9 +319,9 @@ pub fn call_inner<SPEC: Spec>(
     }
     interpreter.return_data_buffer = Bytes::new();
 
-    pop!(interpreter, local_gas_limit);
+    pop!(interpreter, local_energy_limit);
     pop_address!(interpreter, to);
-    let local_gas_limit = u64::try_from(local_gas_limit).unwrap_or(u64::MAX);
+    let local_energy_limit = u64::try_from(local_energy_limit).unwrap_or(u64::MAX);
 
     let value = match scheme {
         CallScheme::CallCode => {
@@ -439,7 +409,7 @@ pub fn call_inner<SPEC: Spec>(
         }
     };
 
-    // load account and calculate gas cost.
+    // load account and calculate energy cost.
     let res = host.load_account(to);
     if res.is_none() {
         interpreter.instruction_result = InstructionResult::FatalExternalError;
@@ -448,9 +418,9 @@ pub fn call_inner<SPEC: Spec>(
     let (is_cold, exist) = res.unwrap();
     let is_new = !exist;
 
-    gas!(
+    energy!(
         interpreter,
-        gas::call_cost::<SPEC>(
+        energy::call_cost::<SPEC>(
             value,
             is_new,
             is_cold,
@@ -459,20 +429,20 @@ pub fn call_inner<SPEC: Spec>(
         )
     );
 
-    // take l64 part of gas_limit
-    let mut gas_limit = if SPEC::enabled(TANGERINE) {
-        //EIP-150: Gas cost changes for IO-heavy operations
-        let gas = interpreter.gas().remaining();
-        min(gas - gas / 64, local_gas_limit)
+    // take l64 part of energy_limit
+    let mut energy_limit = if SPEC::enabled(TANGERINE) {
+        //EIP-150: Energy cost changes for IO-heavy operations
+        let energy = interpreter.energy().remaining();
+        min(energy - energy / 64, local_energy_limit)
     } else {
-        local_gas_limit
+        local_energy_limit
     };
 
-    gas!(interpreter, gas_limit);
+    energy!(interpreter, energy_limit);
 
     // add call stipend if there is value to be transferred.
     if matches!(scheme, CallScheme::Call | CallScheme::CallCode) && transfer.value != U256::ZERO {
-        gas_limit = gas_limit.saturating_add(gas::CALL_STIPEND);
+        energy_limit = energy_limit.saturating_add(energy::CALL_STIPEND);
     }
     let is_static = matches!(scheme, CallScheme::StaticCall) || interpreter.is_static;
 
@@ -480,13 +450,13 @@ pub fn call_inner<SPEC: Spec>(
         contract: to,
         transfer,
         input,
-        gas_limit,
+        energy_limit,
         context,
         is_static,
     };
 
     // Call host to interuct with target contract
-    let (reason, gas, return_data) = host.call(&mut call_input);
+    let (reason, energy, return_data) = host.call(&mut call_input);
 
     interpreter.return_data_buffer = return_data;
 
@@ -494,10 +464,10 @@ pub fn call_inner<SPEC: Spec>(
 
     match reason {
         return_ok!() => {
-            // return unspend gas.
-            if crate::USE_GAS {
-                interpreter.gas.erase_cost(gas.remaining());
-                interpreter.gas.record_refund(gas.refunded());
+            // return unspend energy.
+            if crate::USE_ENERGY {
+                interpreter.energy.erase_cost(energy.remaining());
+                interpreter.energy.record_refund(energy.refunded());
             }
             interpreter
                 .memory
@@ -505,8 +475,8 @@ pub fn call_inner<SPEC: Spec>(
             push!(interpreter, U256::from(1));
         }
         return_revert!() => {
-            if crate::USE_GAS {
-                interpreter.gas.erase_cost(gas.remaining());
+            if crate::USE_ENERGY {
+                interpreter.energy.erase_cost(energy.remaining());
             }
             interpreter
                 .memory

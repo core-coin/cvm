@@ -17,11 +17,6 @@ pub enum SpecName {
     Constantinople, // SKIPPED
     ConstantinopleFix,
     Istanbul,
-    Berlin,
-    BerlinToLondonAt5,
-    London,
-    Merge,
-    Shanghai,
     #[serde(other)]
     Unknown,
 }
@@ -38,10 +33,6 @@ impl SpecName {
             Self::Byzantium | Self::EIP158ToByzantiumAt5 => SpecId::BYZANTIUM,
             Self::ConstantinopleFix | Self::ByzantiumToConstantinopleFixAt5 => SpecId::PETERSBURG,
             Self::Istanbul => SpecId::ISTANBUL,
-            Self::Berlin => SpecId::BERLIN,
-            Self::London | Self::BerlinToLondonAt5 => SpecId::LONDON,
-            Self::Merge => SpecId::MERGE,
-            Self::Shanghai => SpecId::CANCUN,
             Self::ByzantiumToConstantinopleAt5 | Self::Constantinople => {
                 panic!("Overriden with PETERSBURG")
             }

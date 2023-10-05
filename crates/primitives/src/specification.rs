@@ -15,15 +15,7 @@ pub enum SpecId {
     CONSTANTINOPLE = 7,   // Constantinople         7280000 is overwritten with PETERSBURG
     PETERSBURG = 8,       // Petersburg             7280000
     ISTANBUL = 9,         // Istanbul	            9069000
-    MUIR_GLACIER = 10,    // Muir Glacier	        9200000
-    BERLIN = 11,          // Berlin	                12244000
-    LONDON = 12,          // London	                12965000
-    ARROW_GLACIER = 13,   // Arrow Glacier	        13773000
-    GRAY_GLACIER = 14,    // Gray Glacier	        15050000
-    MERGE = 15,           // Paris/Merge	        TBD (Depends on difficulty)
-    SHANGHAI = 16,
-    CANCUN = 17,
-    LATEST = 18,
+    LATEST = 10,
 }
 
 impl SpecId {
@@ -45,11 +37,6 @@ impl From<&str> for SpecId {
             "Constantinople" => SpecId::CONSTANTINOPLE,
             "Petersburg" => SpecId::PETERSBURG,
             "Istanbul" => SpecId::ISTANBUL,
-            "MuirGlacier" => SpecId::MUIR_GLACIER,
-            "Berlin" => SpecId::BERLIN,
-            "London" => SpecId::LONDON,
-            "Merge" => SpecId::MERGE,
-            "Shanghai" => SpecId::SHANGHAI,
             _ => SpecId::LATEST,
         }
     }
@@ -91,12 +78,4 @@ spec!(BYZANTIUM, ByzantiumSpec);
 // CONSTANTINOPLE was overriden with PETERSBURG
 spec!(PETERSBURG, PetersburgSpec);
 spec!(ISTANBUL, IstanbulSpec);
-// MUIR_GLACIER no EVM spec change
-spec!(BERLIN, BerlinSpec);
-spec!(LONDON, LondonSpec);
-// ARROW_GLACIER no EVM spec change
-// GRAY_GLACIER no EVM spec change
-spec!(MERGE, MergeSpec);
-// MERGE_EOF is pending EVM change
-spec!(SHANGHAI, ShanghaiSpec);
 spec!(LATEST, LatestSpec);

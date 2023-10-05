@@ -1,42 +1,42 @@
-//! GasIspector. Helper Inspector to calculte gas for others.
+//! EnergyIspector. Helper Inspector to calculte energy for others.
 //!
-use crate::interpreter::{CallInputs, CreateInputs, Gas, InstructionResult};
+use crate::interpreter::{CallInputs, CreateInputs, Energy, InstructionResult};
 use crate::primitives::{db::Database, Bytes, B176};
 use crate::{evm_impl::EVMData, Inspector};
 
 #[allow(dead_code)]
 #[derive(Clone, Copy, Debug, Default)]
-pub struct GasInspector {
-    gas_remaining: u64,
-    last_gas_cost: u64,
+pub struct EnergyInspector {
+    energy_remaining: u64,
+    last_energy_cost: u64,
 }
 
-impl GasInspector {
-    pub fn gas_remaining(&self) -> u64 {
-        self.gas_remaining
+impl EnergyInspector {
+    pub fn energy_remaining(&self) -> u64 {
+        self.energy_remaining
     }
 
-    pub fn last_gas_cost(&self) -> u64 {
-        self.last_gas_cost
+    pub fn last_energy_cost(&self) -> u64 {
+        self.last_energy_cost
     }
 }
 
-impl<DB: Database> Inspector<DB> for GasInspector {
-    #[cfg(not(feature = "no_gas_measuring"))]
+impl<DB: Database> Inspector<DB> for EnergyInspector {
+    #[cfg(not(feature = "no_energy_measuring"))]
     fn initialize_interp(
         &mut self,
         interp: &mut crate::interpreter::Interpreter,
         _data: &mut EVMData<'_, DB>,
         _is_static: bool,
     ) -> InstructionResult {
-        self.gas_remaining = interp.gas.limit();
+        self.energy_remaining = interp.energy.limit();
         InstructionResult::Continue
     }
 
     // get opcode by calling `interp.contract.opcode(interp.program_counter())`.
     // all other information can be obtained from interp.
 
-    #[cfg(not(feature = "no_gas_measuring"))]
+    #[cfg(not(feature = "no_energy_measuring"))]
     fn step(
         &mut self,
         _interp: &mut crate::interpreter::Interpreter,
@@ -46,7 +46,7 @@ impl<DB: Database> Inspector<DB> for GasInspector {
         InstructionResult::Continue
     }
 
-    #[cfg(not(feature = "no_gas_measuring"))]
+    #[cfg(not(feature = "no_energy_measuring"))]
     fn step_end(
         &mut self,
         interp: &mut crate::interpreter::Interpreter,
@@ -54,12 +54,12 @@ impl<DB: Database> Inspector<DB> for GasInspector {
         _is_static: bool,
         _eval: InstructionResult,
     ) -> InstructionResult {
-        let last_gas = self.gas_remaining;
-        self.gas_remaining = interp.gas.remaining();
-        if last_gas > self.gas_remaining {
-            self.last_gas_cost = last_gas - self.gas_remaining;
+        let last_energy = self.energy_remaining;
+        self.energy_remaining = interp.energy.remaining();
+        if last_energy > self.energy_remaining {
+            self.last_energy_cost = last_energy - self.energy_remaining;
         } else {
-            self.last_gas_cost = 0;
+            self.last_energy_cost = 0;
         }
         InstructionResult::Continue
     }
@@ -68,12 +68,12 @@ impl<DB: Database> Inspector<DB> for GasInspector {
         &mut self,
         _data: &mut EVMData<'_, DB>,
         _inputs: &CallInputs,
-        remaining_gas: Gas,
+        remaining_energy: Energy,
         ret: InstructionResult,
         out: Bytes,
         _is_static: bool,
-    ) -> (InstructionResult, Gas, Bytes) {
-        (ret, remaining_gas, out)
+    ) -> (InstructionResult, Energy, Bytes) {
+        (ret, remaining_energy, out)
     }
 
     fn create_end(
@@ -82,10 +82,10 @@ impl<DB: Database> Inspector<DB> for GasInspector {
         _inputs: &CreateInputs,
         ret: InstructionResult,
         address: Option<B176>,
-        remaining_gas: Gas,
+        remaining_energy: Energy,
         out: Bytes,
-    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
-        (ret, address, remaining_gas, out)
+    ) -> (InstructionResult, Option<B176>, Energy, Bytes) {
+        (ret, address, remaining_energy, out)
     }
 }
 
@@ -93,18 +93,18 @@ impl<DB: Database> Inspector<DB> for GasInspector {
 mod tests {
     use crate::db::BenchmarkDB;
     use crate::interpreter::{
-        opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, OpCode,
+        opcode, CallInputs, CreateInputs, Energy, InstructionResult, Interpreter, OpCode,
     };
     use crate::primitives::{
         hex_literal::hex, Bytecode, Bytes, ResultAndState, TransactTo, B176, B256,
     };
-    use crate::{inspectors::GasInspector, Database, EVMData, Inspector};
+    use crate::{inspectors::EnergyInspector, Database, EVMData, Inspector};
 
     #[derive(Default, Debug)]
     struct StackInspector {
         pc: usize,
-        gas_inspector: GasInspector,
-        gas_remaining_steps: Vec<(usize, u64)>,
+        energy_inspector: EnergyInspector,
+        energy_remaining_steps: Vec<(usize, u64)>,
     }
 
     impl<DB: Database> Inspector<DB> for StackInspector {
@@ -114,7 +114,7 @@ mod tests {
             data: &mut EVMData<'_, DB>,
             is_static: bool,
         ) -> InstructionResult {
-            self.gas_inspector
+            self.energy_inspector
                 .initialize_interp(interp, data, is_static);
             InstructionResult::Continue
         }
@@ -126,7 +126,7 @@ mod tests {
             is_static: bool,
         ) -> InstructionResult {
             self.pc = interp.program_counter();
-            self.gas_inspector.step(interp, data, is_static);
+            self.energy_inspector.step(interp, data, is_static);
             InstructionResult::Continue
         }
 
@@ -137,7 +137,7 @@ mod tests {
             topics: &[B256],
             data: &Bytes,
         ) {
-            self.gas_inspector.log(evm_data, address, topics, data);
+            self.energy_inspector.log(evm_data, address, topics, data);
         }
 
         fn step_end(
@@ -147,9 +147,10 @@ mod tests {
             is_static: bool,
             eval: InstructionResult,
         ) -> InstructionResult {
-            self.gas_inspector.step_end(interp, data, is_static, eval);
-            self.gas_remaining_steps
-                .push((self.pc, self.gas_inspector.gas_remaining()));
+            self.energy_inspector
+                .step_end(interp, data, is_static, eval);
+            self.energy_remaining_steps
+                .push((self.pc, self.energy_inspector.energy_remaining()));
             eval
         }
 
@@ -158,12 +159,12 @@ mod tests {
             data: &mut EVMData<'_, DB>,
             call: &mut CallInputs,
             is_static: bool,
-        ) -> (InstructionResult, Gas, Bytes) {
-            self.gas_inspector.call(data, call, is_static);
+        ) -> (InstructionResult, Energy, Bytes) {
+            self.energy_inspector.call(data, call, is_static);
 
             (
                 InstructionResult::Continue,
-                Gas::new(call.gas_limit),
+                Energy::new(call.energy_limit),
                 Bytes::new(),
             )
         }
@@ -172,27 +173,33 @@ mod tests {
             &mut self,
             data: &mut EVMData<'_, DB>,
             inputs: &CallInputs,
-            remaining_gas: Gas,
+            remaining_energy: Energy,
             ret: InstructionResult,
             out: Bytes,
             is_static: bool,
-        ) -> (InstructionResult, Gas, Bytes) {
-            self.gas_inspector
-                .call_end(data, inputs, remaining_gas, ret, out.clone(), is_static);
-            (ret, remaining_gas, out)
+        ) -> (InstructionResult, Energy, Bytes) {
+            self.energy_inspector.call_end(
+                data,
+                inputs,
+                remaining_energy,
+                ret,
+                out.clone(),
+                is_static,
+            );
+            (ret, remaining_energy, out)
         }
 
         fn create(
             &mut self,
             data: &mut EVMData<'_, DB>,
             call: &mut CreateInputs,
-        ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
-            self.gas_inspector.create(data, call);
+        ) -> (InstructionResult, Option<B176>, Energy, Bytes) {
+            self.energy_inspector.create(data, call);
 
             (
                 InstructionResult::Continue,
                 None,
-                Gas::new(call.gas_limit),
+                Energy::new(call.energy_limit),
                 Bytes::new(),
             )
         }
@@ -203,17 +210,23 @@ mod tests {
             inputs: &CreateInputs,
             status: InstructionResult,
             address: Option<B176>,
-            gas: Gas,
+            energy: Energy,
             retdata: Bytes,
-        ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
-            self.gas_inspector
-                .create_end(data, inputs, status, address, gas, retdata.clone());
-            (status, address, gas, retdata)
+        ) -> (InstructionResult, Option<B176>, Energy, Bytes) {
+            self.energy_inspector.create_end(
+                data,
+                inputs,
+                status,
+                address,
+                energy,
+                retdata.clone(),
+            );
+            (status, address, energy, retdata)
         }
     }
 
     #[test]
-    fn test_gas_inspector() {
+    fn test_energy_inspector() {
         let contract_data: Bytes = Bytes::from(vec![
             opcode::PUSH1,
             0x1,
@@ -236,15 +249,15 @@ mod tests {
         evm.env.tx.caller = B176(hex!("10000000000000000000000000000000000000000000"));
         evm.env.tx.transact_to =
             TransactTo::Call(B176(hex!("00000000000000000000000000000000000000000000")));
-        evm.env.tx.gas_limit = 21100;
+        evm.env.tx.energy_limit = 21100;
 
         let mut inspector = StackInspector::default();
         let ResultAndState { result, state } = evm.inspect(&mut inspector).unwrap();
         println!("{result:?} {state:?} {inspector:?}");
 
-        for (pc, gas) in inspector.gas_remaining_steps {
+        for (pc, energy) in inspector.energy_remaining_steps {
             println!(
-                "{pc} {} {gas:?}",
+                "{pc} {} {energy:?}",
                 OpCode::try_from_u8(bytecode.bytes()[pc]).unwrap().as_str(),
             );
         }

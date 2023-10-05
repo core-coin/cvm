@@ -3,7 +3,7 @@ mod dummy_host;
 use crate::primitives::Bytecode;
 use crate::{
     primitives::{Bytes, Env, B176, B256, U256},
-    CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, SelfDestructResult,
+    CallInputs, CreateInputs, Energy, InstructionResult, Interpreter, SelfDestructResult,
 };
 pub use dummy_host::DummyHost;
 
@@ -47,7 +47,7 @@ pub trait Host {
     fn create(
         &mut self,
         inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<B176>, Gas, Bytes);
+    ) -> (InstructionResult, Option<B176>, Energy, Bytes);
     /// Invoke a call operation.
-    fn call(&mut self, input: &mut CallInputs) -> (InstructionResult, Gas, Bytes);
+    fn call(&mut self, input: &mut CallInputs) -> (InstructionResult, Energy, Bytes);
 }

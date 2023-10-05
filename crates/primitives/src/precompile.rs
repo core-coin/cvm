@@ -8,8 +8,8 @@ pub type CustomPrecompileFn = fn(&[u8], u64) -> PrecompileResult;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PrecompileError {
-    /// out of gas is the main error. Other are just here for completness
-    OutOfGas,
+    /// out of energy is the main error. Other are just here for completness
+    OutOfEnergy,
     // Blake2 erorr
     Blake2WrongLength,
     Blake2WrongFinalIndicatorFlag,

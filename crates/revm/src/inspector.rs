@@ -1,12 +1,12 @@
 use crate::evm_impl::EVMData;
-use crate::interpreter::{CallInputs, CreateInputs, Gas, InstructionResult, Interpreter};
+use crate::interpreter::{CallInputs, CreateInputs, Energy, InstructionResult, Interpreter};
 use crate::primitives::{db::Database, Bytes, B176, B256};
 
 use auto_impl::auto_impl;
 
 #[cfg(feature = "std")]
 pub mod customprinter;
-pub mod gas;
+pub mod energy;
 pub mod noop;
 #[cfg(feature = "serde")]
 pub mod tracer_eip3155;
@@ -15,7 +15,7 @@ pub mod tracer_eip3155;
 pub mod inspectors {
     #[cfg(feature = "std")]
     pub use super::customprinter::CustomPrintTracer;
-    pub use super::gas::GasInspector;
+    pub use super::energy::EnergyInspector;
     pub use super::noop::NoOpInspector;
     #[cfg(feature = "serde")]
     pub use super::tracer_eip3155::TracerEip3155;
@@ -84,24 +84,24 @@ pub trait Inspector<DB: Database> {
         _data: &mut EVMData<'_, DB>,
         _inputs: &mut CallInputs,
         _is_static: bool,
-    ) -> (InstructionResult, Gas, Bytes) {
-        (InstructionResult::Continue, Gas::new(0), Bytes::new())
+    ) -> (InstructionResult, Energy, Bytes) {
+        (InstructionResult::Continue, Energy::new(0), Bytes::new())
     }
 
     /// Called when a call to a contract has concluded.
     ///
-    /// InstructionResulting anything other than the values passed to this function (`(ret, remaining_gas,
+    /// InstructionResulting anything other than the values passed to this function (`(ret, remaining_energy,
     /// out)`) will alter the result of the call.
     fn call_end(
         &mut self,
         _data: &mut EVMData<'_, DB>,
         _inputs: &CallInputs,
-        remaining_gas: Gas,
+        remaining_energy: Energy,
         ret: InstructionResult,
         out: Bytes,
         _is_static: bool,
-    ) -> (InstructionResult, Gas, Bytes) {
-        (ret, remaining_gas, out)
+    ) -> (InstructionResult, Energy, Bytes) {
+        (ret, remaining_energy, out)
     }
 
     /// Called when a contract is about to be created.
@@ -111,18 +111,18 @@ pub trait Inspector<DB: Database> {
         &mut self,
         _data: &mut EVMData<'_, DB>,
         _inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<B176>, Energy, Bytes) {
         (
             InstructionResult::Continue,
             None,
-            Gas::new(0),
+            Energy::new(0),
             Bytes::default(),
         )
     }
 
     /// Called when a contract has been created.
     ///
-    /// InstructionResulting anything other than the values passed to this function (`(ret, remaining_gas,
+    /// InstructionResulting anything other than the values passed to this function (`(ret, remaining_energy,
     /// address, out)`) will alter the result of the create.
     fn create_end(
         &mut self,
@@ -130,10 +130,10 @@ pub trait Inspector<DB: Database> {
         _inputs: &CreateInputs,
         ret: InstructionResult,
         address: Option<B176>,
-        remaining_gas: Gas,
+        remaining_energy: Energy,
         out: Bytes,
-    ) -> (InstructionResult, Option<B176>, Gas, Bytes) {
-        (ret, address, remaining_gas, out)
+    ) -> (InstructionResult, Option<B176>, Energy, Bytes) {
+        (ret, address, remaining_energy, out)
     }
 
     /// Called when a contract has been self-destructed with funds transferred to target.

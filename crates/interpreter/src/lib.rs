@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub mod gas;
+pub mod energy;
 mod host;
 pub mod inner_models;
 pub mod instruction_result;
@@ -10,10 +10,10 @@ mod interpreter;
 extern crate alloc;
 extern crate core;
 
-pub(crate) const USE_GAS: bool = !cfg!(feature = "no_gas_measuring");
+pub(crate) const USE_ENERGY: bool = !cfg!(feature = "no_energy_measuring");
 
 // Reexport primary types.
-pub use gas::Gas;
+pub use energy::Energy;
 pub use host::{DummyHost, Host};
 pub use inner_models::*;
 pub use instruction_result::InstructionResult;

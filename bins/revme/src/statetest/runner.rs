@@ -77,8 +77,8 @@ pub fn execute_test_suit(
         return Ok(());
     }
 
-    // Test check if gas price overflows, we handle this correctly but does not match tests specific exception.
-    if path.file_name() == Some(OsStr::new("HighGasPrice.json")) {
+    // Test check if energy price overflows, we handle this correctly but does not match tests specific exception.
+    if path.file_name() == Some(OsStr::new("HighEnergyPrice.json")) {
         return Ok(());
     }
 
@@ -175,11 +175,9 @@ pub fn execute_test_suit(
         env.block.number = unit.env.current_number;
         env.block.coinbase = unit.env.current_coinbase;
         env.block.timestamp = unit.env.current_timestamp;
-        env.block.gas_limit = unit.env.current_gas_limit;
-        env.block.basefee = unit.env.current_base_fee.unwrap_or_default();
+        env.block.energy_limit = unit.env.current_energy_limit;
         env.block.difficulty = unit.env.current_difficulty;
         // after the Merge prevrandao replaces mix_hash field in block and replaced difficulty opcode in EVM.
-        env.block.prevrandao = Some(unit.env.current_difficulty.to_be_bytes().into());
 
         //tx env
         env.tx.caller =
@@ -189,11 +187,7 @@ pub fn execute_test_suit(
                 let private_key = unit.transaction.secret_key.unwrap();
                 return Err(TestError::UnknownPrivateKey { private_key });
             };
-        env.tx.gas_price = unit
-            .transaction
-            .gas_price
-            .unwrap_or_else(|| unit.transaction.max_fee_per_gas.unwrap_or_default());
-        env.tx.gas_priority_fee = unit.transaction.max_priority_fee_per_gas;
+        env.tx.energy_price = unit.transaction.energy_price.unwrap_or(U256::ZERO);
 
         // post and execution
         for (spec_name, tests) in unit.post {
@@ -209,9 +203,13 @@ pub fn execute_test_suit(
             env.cfg.spec_id = spec_name.to_spec_id();
 
             for (id, test) in tests.into_iter().enumerate() {
-                let gas_limit = *unit.transaction.gas_limit.get(test.indexes.gas).unwrap();
-                let gas_limit = u64::try_from(gas_limit).unwrap_or(u64::MAX);
-                env.tx.gas_limit = gas_limit;
+                let energy_limit = *unit
+                    .transaction
+                    .energy_limit
+                    .get(test.indexes.energy)
+                    .unwrap();
+                let energy_limit = u64::try_from(energy_limit).unwrap_or(u64::MAX);
+                env.tx.energy_limit = energy_limit;
                 env.tx.data = unit
                     .transaction
                     .data
@@ -219,27 +217,6 @@ pub fn execute_test_suit(
                     .unwrap()
                     .clone();
                 env.tx.value = *unit.transaction.value.get(test.indexes.value).unwrap();
-
-                let access_list = match unit.transaction.access_lists {
-                    Some(ref access_list) => access_list
-                        .get(test.indexes.data)
-                        .cloned()
-                        .flatten()
-                        .unwrap_or_default()
-                        .into_iter()
-                        .map(|item| {
-                            (
-                                item.address,
-                                item.storage_keys
-                                    .into_iter()
-                                    .map(|key| U256::from_be_bytes(key.0))
-                                    .collect::<Vec<_>>(),
-                            )
-                        })
-                        .collect(),
-                    None => Vec::new(),
-                };
-                env.tx.access_list = access_list;
 
                 let to = match unit.transaction.to {
                     Some(add) => TransactTo::Call(add),
@@ -299,20 +276,26 @@ pub fn execute_test_suit(
                     match &exec_result {
                         Ok(ExecutionResult::Success {
                             reason,
-                            gas_used,
-                            gas_refunded,
+                            energy_used,
+                            energy_refunded,
                             ..
                         }) => {
-                            println!("Failed reason: {reason:?} {path:?} UNIT_TEST:{name}\n gas:{gas_used:?} ({gas_refunded:?} refunded)");
+                            println!("Failed reason: {reason:?} {path:?} UNIT_TEST:{name}\n energy:{energy_used:?} ({energy_refunded:?} refunded)");
                         }
-                        Ok(ExecutionResult::Revert { gas_used, output }) => {
+                        Ok(ExecutionResult::Revert {
+                            energy_used,
+                            output,
+                        }) => {
                             println!(
-                                "Reverted: {output:?} {path:?} UNIT_TEST:{name}\n gas:{gas_used:?}"
+                                "Reverted: {output:?} {path:?} UNIT_TEST:{name}\n energy:{energy_used:?}"
                             );
                         }
-                        Ok(ExecutionResult::Halt { reason, gas_used }) => {
+                        Ok(ExecutionResult::Halt {
+                            reason,
+                            energy_used,
+                        }) => {
                             println!(
-                                "Halted: {reason:?} {path:?} UNIT_TEST:{name}\n gas:{gas_used:?}"
+                                "Halted: {reason:?} {path:?} UNIT_TEST:{name}\n energy:{energy_used:?}"
                             );
                         }
                         Err(out) => {
