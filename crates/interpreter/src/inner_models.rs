@@ -14,7 +14,7 @@ pub struct CallInputs {
         serde(with = "crate::primitives::utilities::serde_hex_bytes")
     )]
     pub input: Bytes,
-    /// The gas limit of the call.
+    /// The energy limit of the call.
     pub energy_limit: u64,
     /// The context of the call.
     pub context: CallContext,

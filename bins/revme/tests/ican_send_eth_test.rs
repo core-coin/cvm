@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 #[test]
 fn test_send_ican() {
-    // Create AccountInfo with balance for gas
+    // Create AccountInfo with balance for energy
     let account = AccountInfo {
         balance: U256::from_str("10000000000000000000000").unwrap(),
         ..Default::default()

@@ -43,7 +43,7 @@ pub fn pc(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 }
 
 pub fn ret(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    // zero gas cost energy!(interp,gas::ZERO);
+    // zero energy cost energy!(interp,energy::ZERO);
     pop!(interpreter, start, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
     if len == 0 {
@@ -57,7 +57,7 @@ pub fn ret(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 }
 
 pub fn revert<SPEC: Spec>(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    // zero gas cost energy!(interp,gas::ZERO);
+    // zero energy cost energy!(interp,energy::ZERO);
     // EIP-140: REVERT instruction
     check!(interpreter, SPEC::enabled(BYZANTIUM));
     pop!(interpreter, start, len);

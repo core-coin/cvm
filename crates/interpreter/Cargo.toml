@@ -37,14 +37,14 @@ dev = [
     "optional_balance_check",
     "optional_block_energy_limit",
     "optional_eip3607",
-    "optional_gas_refund",
+    "optional_energy_refund",
 ]
 memory_limit = ["revm-primitives/memory_limit"]
-no_gas_measuring = ["revm-primitives/no_gas_measuring"]
+no_energy_measuring = ["revm-primitives/no_energy_measuring"]
 optional_balance_check = ["revm-primitives/optional_balance_check"]
 optional_block_energy_limit = ["revm-primitives/optional_block_energy_limit"]
 optional_eip3607 = ["revm-primitives/optional_eip3607"]
-optional_gas_refund = ["revm-primitives/optional_gas_refund"]
+optional_energy_refund = ["revm-primitives/optional_energy_refund"]
 std = ["revm-primitives/std"]
 serde = [
     "dep:serde",

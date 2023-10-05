@@ -57,14 +57,14 @@ dev = [
     "optional_balance_check",
     "optional_block_energy_limit",
     "optional_eip3607",
-    "optional_gas_refund",
+    "optional_energy_refund",
 ]
 memory_limit = []
-no_gas_measuring = []
+no_energy_measuring = []
 optional_balance_check = []
 optional_block_energy_limit = []
 optional_eip3607 = []
-optional_gas_refund = []
+optional_energy_refund = []
 std = ["bytes/std", "rlp/std", "hex/std", "bitvec/std"]
 serde = [
     "dep:serde",

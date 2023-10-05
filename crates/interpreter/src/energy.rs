@@ -14,7 +14,7 @@ pub struct Energy {
     used: u64,
     /// Used energy for memory expansion
     memory: u64,
-    /// Refunded energy. This gas is used only at the end of execution.
+    /// Refunded energy. This energy is used only at the end of execution.
     refunded: i64,
 }
 impl Energy {

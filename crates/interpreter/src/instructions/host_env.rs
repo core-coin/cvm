@@ -31,12 +31,12 @@ pub fn difficulty<H: Host, SPEC: Spec>(interpreter: &mut Interpreter, host: &mut
     push!(interpreter, host.env().block.difficulty);
 }
 
-pub fn gaslimit(interpreter: &mut Interpreter, host: &mut dyn Host) {
+pub fn energylimit(interpreter: &mut Interpreter, host: &mut dyn Host) {
     energy!(interpreter, energy::BASE);
     push!(interpreter, host.env().block.energy_limit);
 }
 
-pub fn gasprice(interpreter: &mut Interpreter, host: &mut dyn Host) {
+pub fn energyprice(interpreter: &mut Interpreter, host: &mut dyn Host) {
     energy!(interpreter, energy::BASE);
     push!(interpreter, host.env().effective_energy_price());
 }

@@ -18,7 +18,7 @@ fn test_deploy_ican() {
     // Create new in memory database
     evm.database(InMemoryDB::default());
 
-    // create AccountInfo with balance for gas
+    // create AccountInfo with balance for energy
     let account_user = AccountInfo {
         balance: U256::from_str("10000000000000000000000").unwrap(),
         ..Default::default()

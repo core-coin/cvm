@@ -7,7 +7,7 @@ use revm_primitives::{Env, TransactTo};
 pub struct Contract {
     /// Contracts data
     pub input: Bytes,
-    /// Bytecode contains contract code, size of original code, analysis with gas block and jump table.
+    /// Bytecode contains contract code, size of original code, analysis with energy block and jump table.
     /// Note that current code is extended with push padding and STOP at end.
     pub bytecode: BytecodeLocked,
     /// Contract address

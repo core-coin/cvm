@@ -10,7 +10,7 @@ mod interpreter;
 extern crate alloc;
 extern crate core;
 
-pub(crate) const USE_ENERGY: bool = !cfg!(feature = "no_gas_measuring");
+pub(crate) const USE_ENERGY: bool = !cfg!(feature = "no_energy_measuring");
 
 // Reexport primary types.
 pub use energy::Energy;

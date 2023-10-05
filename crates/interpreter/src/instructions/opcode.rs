@@ -122,7 +122,7 @@ pub const BASEFEE: u8 = 0x48;
 pub const ORIGIN: u8 = 0x32;
 pub const CALLER: u8 = 0x33;
 pub const CALLVALUE: u8 = 0x34;
-pub const GASPRICE: u8 = 0x3a;
+pub const ENERGYPRICE: u8 = 0x3a;
 pub const EXTCODESIZE: u8 = 0x3b;
 pub const EXTCODECOPY: u8 = 0x3c;
 pub const EXTCODEHASH: u8 = 0x3f;
@@ -133,11 +133,11 @@ pub const COINBASE: u8 = 0x41;
 pub const TIMESTAMP: u8 = 0x42;
 pub const NUMBER: u8 = 0x43;
 pub const DIFFICULTY: u8 = 0x44;
-pub const GASLIMIT: u8 = 0x45;
+pub const ENERGYLIMIT: u8 = 0x45;
 pub const SELFBALANCE: u8 = 0x47;
 pub const SLOAD: u8 = 0x54;
 pub const SSTORE: u8 = 0x55;
-pub const GAS: u8 = 0x5a;
+pub const ENERGY: u8 = 0x5a;
 
 pub const LOG0: u8 = 0xa0;
 pub const LOG1: u8 = 0xa1;
@@ -242,7 +242,7 @@ pub const OPCODE_JUMPMAP: [Option<&'static str>; 256] = [
     /* 0x37 */ Some("CALLDATACOPY"),
     /* 0x38 */ Some("CODESIZE"),
     /* 0x39 */ Some("CODECOPY"),
-    /* 0x3a */ Some("GASPRICE"),
+    /* 0x3a */ Some("ENERGYPRICE"),
     /* 0x3b */ Some("EXTCODESIZE"),
     /* 0x3c */ Some("EXTCODECOPY"),
     /* 0x3d */ Some("RETURNDATASIZE"),
@@ -253,7 +253,7 @@ pub const OPCODE_JUMPMAP: [Option<&'static str>; 256] = [
     /* 0x42 */ Some("TIMESTAMP"),
     /* 0x43 */ Some("NUMBER"),
     /* 0x44 */ Some("DIFFICULTY"),
-    /* 0x45 */ Some("GASLIMIT"),
+    /* 0x45 */ Some("ENERGYLIMIT"),
     /* 0x46 */ Some("CHAINID"),
     /* 0x47 */ Some("SELFBALANCE"),
     /* 0x48 */ Some("BASEFEE"),
@@ -274,7 +274,7 @@ pub const OPCODE_JUMPMAP: [Option<&'static str>; 256] = [
     /* 0x57 */ Some("JUMPI"),
     /* 0x58 */ Some("PC"),
     /* 0x59 */ Some("MSIZE"),
-    /* 0x5a */ Some("GAS"),
+    /* 0x5a */ Some("ENERGY"),
     /* 0x5b */ Some("JUMPDEST"),
     /* 0x5c */ Some("TLOAD"),
     /* 0x5d */ Some("TSTORE"),
@@ -445,14 +445,14 @@ pub const OPCODE_JUMPMAP: [Option<&'static str>; 256] = [
 #[derive(Debug)]
 pub struct OpInfo {
     /// Data contains few information packed inside u32:
-    /// IS_JUMP (1bit) | IS_GAS_BLOCK_END (1bit) | IS_PUSH (1bit) | gas (29bits)
+    /// IS_JUMP (1bit) | IS_ENERGY_BLOCK_END (1bit) | IS_PUSH (1bit) | energy (29bits)
     data: u32,
 }
 
 const JUMP_MASK: u32 = 0x80000000;
-const GAS_BLOCK_END_MASK: u32 = 0x40000000;
+const ENERGY_BLOCK_END_MASK: u32 = 0x40000000;
 const IS_PUSH_MASK: u32 = 0x20000000;
-const GAS_MASK: u32 = 0x1FFFFFFF;
+const ENERGY_MASK: u32 = 0x1FFFFFFF;
 
 impl OpInfo {
     #[inline(always)]
@@ -461,7 +461,7 @@ impl OpInfo {
     }
     #[inline(always)]
     pub fn is_energy_block_end(&self) -> bool {
-        self.data & GAS_BLOCK_END_MASK == GAS_BLOCK_END_MASK
+        self.data & ENERGY_BLOCK_END_MASK == ENERGY_BLOCK_END_MASK
     }
     #[inline(always)]
     pub fn is_push(&self) -> bool {
@@ -470,7 +470,7 @@ impl OpInfo {
 
     #[inline(always)]
     pub fn get_energy(&self) -> u32 {
-        self.data & GAS_MASK
+        self.data & ENERGY_MASK
     }
 
     pub const fn none() -> Self {
@@ -479,7 +479,7 @@ impl OpInfo {
 
     pub const fn energy_block_end(energy: u64) -> Self {
         Self {
-            data: energy as u32 | GAS_BLOCK_END_MASK,
+            data: energy as u32 | ENERGY_BLOCK_END_MASK,
         }
     }
     pub const fn dynamic_energy() -> Self {
@@ -499,7 +499,7 @@ impl OpInfo {
 
     pub const fn jumpdest() -> Self {
         Self {
-            data: JUMP_MASK | GAS_BLOCK_END_MASK,
+            data: JUMP_MASK | ENERGY_BLOCK_END_MASK,
         }
     }
 }

@@ -7,8 +7,8 @@ pub mod add {
 
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], target_gas: u64| -> PrecompileResult {
-            if 150 > target_gas {
+        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+            if 150 > target_energy {
                 return Err(Error::OutOfEnergy);
             }
             Ok((150, super::run_add(input)?))
@@ -17,8 +17,8 @@ pub mod add {
 
     pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], target_gas: u64| -> PrecompileResult {
-            if 500 > target_gas {
+        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+            if 500 > target_energy {
                 return Err(Error::OutOfEnergy);
             }
             Ok((500, super::run_add(input)?))
@@ -58,12 +58,12 @@ pub mod pair {
     const ISTANBUL_PAIR_BASE: u64 = 45_000;
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], target_gas: u64| -> PrecompileResult {
+        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
             super::run_pair(
                 input,
                 ISTANBUL_PAIR_PER_POINT,
                 ISTANBUL_PAIR_BASE,
-                target_gas,
+                target_energy,
             )
         }),
     );
@@ -72,12 +72,12 @@ pub mod pair {
     const BYZANTIUM_PAIR_BASE: u64 = 100_000;
     pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], target_gas: u64| -> PrecompileResult {
+        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
             super::run_pair(
                 input,
                 BYZANTIUM_PAIR_PER_POINT,
                 BYZANTIUM_PAIR_BASE,
-                target_gas,
+                target_energy,
             )
         }),
     );
@@ -165,9 +165,9 @@ fn run_pair(
     pair_base_cost: u64,
     energy_limit: u64,
 ) -> PrecompileResult {
-    let gas_used =
+    let energy_used =
         pair_per_point_cost * input.len() as u64 / PAIR_ELEMENT_LEN as u64 + pair_base_cost;
-    if gas_used > energy_limit {
+    if energy_used > energy_limit {
         return Err(Error::OutOfEnergy);
     }
 
@@ -232,7 +232,7 @@ fn run_pair(
         }
     };
 
-    Ok((gas_used, output.to_be_bytes_vec()))
+    Ok((energy_used, output.to_be_bytes_vec()))
 }
 
 /*
@@ -285,7 +285,7 @@ mod tests {
             .output;
         assert_eq!(res, expected);
 
-        // out of gas test
+        // out of energy test
         let input = hex::decode(
             "\
             0000000000000000000000000000000000000000000000000000000000000000\
@@ -349,7 +349,7 @@ mod tests {
             .output;
         assert_eq!(res, expected);
 
-        // out of gas test
+        // out of energy test
         let input = hex::decode(
             "\
             0000000000000000000000000000000000000000000000000000000000000000\
@@ -437,7 +437,7 @@ mod tests {
             .output;
         assert_eq!(res, expected);
 
-        // out of gas test
+        // out of energy test
         let input = hex::decode(
             "\
             1c76476f4def4bb94541d57ebba1193381ffa7aa76ada664dd31c16024c43f59\

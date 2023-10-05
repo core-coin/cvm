@@ -159,7 +159,7 @@ impl Precompiles {
                 vec![
                     // EIP-152: Add BLAKE2 compression function `F` precompile.
                     blake2::FUN,
-                    // EIP-1108: Reduce alt_bn128 precompile gas costs.
+                    // EIP-1108: Reduce alt_bn128 precompile energy costs.
                     bn128::add::ISTANBUL,
                     bn128::mul::ISTANBUL,
                     bn128::pair::ISTANBUL,
