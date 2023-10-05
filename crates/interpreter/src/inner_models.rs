@@ -15,7 +15,7 @@ pub struct CallInputs {
     )]
     pub input: Bytes,
     /// The gas limit of the call.
-    pub gas_limit: u64,
+    pub energy_limit: u64,
     /// The context of the call.
     pub context: CallContext,
     /// Is static call
@@ -32,7 +32,7 @@ pub struct CreateInputs {
         serde(with = "crate::primitives::utilities::serde_hex_bytes")
     )]
     pub init_code: Bytes,
-    pub gas_limit: u64,
+    pub energy_limit: u64,
 }
 
 /// Call schemes.

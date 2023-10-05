@@ -20,18 +20,18 @@ pub enum ExecutionResult {
     /// Returned successfully
     Success {
         reason: Eval,
-        gas_used: u64,
-        gas_refunded: u64,
+        energy_used: u64,
+        energy_refunded: u64,
         logs: Vec<Log>,
         output: Output,
     },
-    /// Reverted by `REVERT` opcode that doesn't spend all gas.
-    Revert { gas_used: u64, output: Bytes },
-    /// Reverted for various reasons and spend all gas.
+    /// Reverted by `REVERT` opcode that doesn't spend all energy.
+    Revert { energy_used: u64, output: Bytes },
+    /// Reverted for various reasons and spend all energy.
     Halt {
         reason: Halt,
-        /// Halting will spend all the gas, and will be equal to gas_limit.
-        gas_used: u64,
+        /// Halting will spend all the energy, and will be equal to energy_limit.
+        energy_used: u64,
     },
 }
 
@@ -51,12 +51,12 @@ impl ExecutionResult {
         }
     }
 
-    pub fn gas_used(&self) -> u64 {
-        let (Self::Success { gas_used, .. }
-        | Self::Revert { gas_used, .. }
-        | Self::Halt { gas_used, .. }) = self;
+    pub fn energy_used(&self) -> u64 {
+        let (Self::Success { energy_used, .. }
+        | Self::Revert { energy_used, .. }
+        | Self::Halt { energy_used, .. }) = self;
 
-        *gas_used
+        *energy_used
     }
 }
 
@@ -99,15 +99,15 @@ impl<DB> From<InvalidTransaction> for EVMError<DB> {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum InvalidTransaction {
-    GasMaxFeeGreaterThanPriorityFee,
-    GasPriceLessThanBasefee,
-    CallerGasLimitMoreThanBlock,
-    CallGasCostMoreThanGasLimit,
+    EnergyMaxFeeGreaterThanPriorityFee,
+    EnergyPriceLessThanBasefee,
+    CallerEnergyLimitMoreThanBlock,
+    CallEnergyCostMoreThanEnergyLimit,
     /// EIP-3607 Reject transactions from senders with deployed code
     RejectCallerWithCode,
-    /// Transaction account does not have enough amount of ether to cover transferred value and gas_limit*gas_price.
-    LackOfFundForGasLimit {
-        gas_limit: U256,
+    /// Transaction account does not have enough amount of ether to cover transferred value and energy_limit*energy_price.
+    LackOfFundForEnergyLimit {
+        energy_limit: U256,
         balance: U256,
     },
     /// Overflow payment in transaction.
@@ -137,11 +137,11 @@ pub enum Eval {
 }
 
 /// Indicates that the EVM has experienced an exceptional halt. This causes execution to
-/// immediately end with all gas being consumed.
+/// immediately end with all energy being consumed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Halt {
-    OutOfGas(OutOfGasError),
+    OutOfEnergy(OutOfEnergyError),
     OpcodeNotFound,
     InvalidFEOpcode,
     InvalidJump,
@@ -169,9 +169,9 @@ pub enum Halt {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum OutOfGasError {
+pub enum OutOfEnergyError {
     // Basic OOG error
-    BasicOutOfGas,
+    BasicOutOfEnergy,
     // Tried to expand past REVM limit
     MemoryLimit,
     // Basic OOG error from memory expansion

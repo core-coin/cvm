@@ -1,5 +1,5 @@
 use crate::{
-    gas,
+    energy,
     interpreter::Interpreter,
     primitives::{sha3 as hash_sha3, Spec, SpecId::*, B256, KECCAK_EMPTY, U256},
     Host, InstructionResult,
@@ -9,7 +9,7 @@ use core::cmp::min;
 pub fn sha3(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     pop!(interpreter, from, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
-    gas_or_fail!(interpreter, gas::sha3_cost(len as u64));
+    energy_or_fail!(interpreter, energy::sha3_cost(len as u64));
     let hash = if len == 0 {
         KECCAK_EMPTY
     } else {
@@ -22,24 +22,24 @@ pub fn sha3(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 }
 
 pub fn address(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::BASE);
+    energy!(interpreter, energy::BASE);
     push_b256!(interpreter, B256::from(interpreter.contract.address));
 }
 
 pub fn caller(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::BASE);
+    energy!(interpreter, energy::BASE);
     push_b256!(interpreter, B256::from(interpreter.contract.caller));
 }
 
 pub fn codesize(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::BASE);
+    energy!(interpreter, energy::BASE);
     push!(interpreter, U256::from(interpreter.contract.bytecode.len()));
 }
 
 pub fn codecopy(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     pop!(interpreter, memory_offset, code_offset, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
-    gas_or_fail!(interpreter, gas::verylowcopy_cost(len as u64));
+    energy_or_fail!(interpreter, energy::verylowcopy_cost(len as u64));
     if len == 0 {
         return;
     }
@@ -61,7 +61,7 @@ pub fn codecopy(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 }
 
 pub fn calldataload(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::VERYLOW);
+    energy!(interpreter, energy::VERYLOW);
     pop!(interpreter, index);
     let index = as_usize_saturated!(index);
 
@@ -78,19 +78,19 @@ pub fn calldataload(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 }
 
 pub fn calldatasize(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::BASE);
+    energy!(interpreter, energy::BASE);
     push!(interpreter, U256::from(interpreter.contract.input.len()));
 }
 
 pub fn callvalue(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::BASE);
+    energy!(interpreter, energy::BASE);
     push!(interpreter, interpreter.contract.value);
 }
 
 pub fn calldatacopy(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     pop!(interpreter, memory_offset, data_offset, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
-    gas_or_fail!(interpreter, gas::verylowcopy_cost(len as u64));
+    energy_or_fail!(interpreter, energy::verylowcopy_cost(len as u64));
     if len == 0 {
         return;
     }
@@ -109,7 +109,7 @@ pub fn calldatacopy(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 }
 
 pub fn returndatasize<SPEC: Spec>(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::BASE);
+    energy!(interpreter, energy::BASE);
     // EIP-211: New opcodes: RETURNDATASIZE and RETURNDATACOPY
     check!(interpreter, SPEC::enabled(BYZANTIUM));
     push!(
@@ -123,7 +123,7 @@ pub fn returndatacopy<SPEC: Spec>(interpreter: &mut Interpreter, _host: &mut dyn
     check!(interpreter, SPEC::enabled(BYZANTIUM));
     pop!(interpreter, memory_offset, offset, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
-    gas_or_fail!(interpreter, gas::verylowcopy_cost(len as u64));
+    energy_or_fail!(interpreter, energy::verylowcopy_cost(len as u64));
     let data_offset = as_usize_saturated!(offset);
     let (data_end, overflow) = data_offset.overflowing_add(len);
     if overflow || data_end > interpreter.return_data_buffer.len() {
@@ -144,7 +144,7 @@ pub fn returndatacopy<SPEC: Spec>(interpreter: &mut Interpreter, _host: &mut dyn
     }
 }
 
-pub fn gas(interpreter: &mut Interpreter, _host: &mut dyn Host) {
-    gas!(interpreter, gas::BASE);
-    push!(interpreter, U256::from(interpreter.gas.remaining()));
+pub fn energy(interpreter: &mut Interpreter, _host: &mut dyn Host) {
+    energy!(interpreter, energy::BASE);
+    push!(interpreter, U256::from(interpreter.energy.remaining()));
 }

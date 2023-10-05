@@ -11,7 +11,7 @@ pub use stack::Stack;
 use crate::primitives::{Bytes, Spec};
 use crate::{
     instructions::{eval, InstructionResult},
-    Gas, Host,
+    Energy, Host,
 };
 use core::ops::Range;
 
@@ -29,8 +29,8 @@ pub struct Interpreter {
     pub instruction_pointer: *const u8,
     /// Return is main control flag, it tell us if we should continue interpreter or break from it
     pub instruction_result: InstructionResult,
-    /// left gas. Memory gas can be found in Memory field.
-    pub gas: Gas,
+    /// left energy. Memory energy can be found in Memory field.
+    pub energy: Energy,
     /// Memory.
     pub memory: Memory,
     /// Stack.
@@ -55,7 +55,7 @@ impl Interpreter {
     }
 
     /// Create new interpreter
-    pub fn new(contract: Contract, gas_limit: u64, is_static: bool) -> Self {
+    pub fn new(contract: Contract, energy_limit: u64, is_static: bool) -> Self {
         #[cfg(not(feature = "memory_limit"))]
         {
             Self {
@@ -67,20 +67,20 @@ impl Interpreter {
                 contract,
                 instruction_result: InstructionResult::Continue,
                 is_static,
-                gas: Gas::new(gas_limit),
+                energy: Energy::new(energy_limit),
             }
         }
 
         #[cfg(feature = "memory_limit")]
         {
-            Self::new_with_memory_limit(contract, gas_limit, is_static, u64::MAX)
+            Self::new_with_memory_limit(contract, energy_limit, is_static, u64::MAX)
         }
     }
 
     #[cfg(feature = "memory_limit")]
     pub fn new_with_memory_limit(
         contract: Contract,
-        gas_limit: u64,
+        energy_limit: u64,
         is_static: bool,
         memory_limit: u64,
     ) -> Self {
@@ -93,7 +93,7 @@ impl Interpreter {
             contract,
             instruction_result: InstructionResult::Continue,
             is_static,
-            gas: Gas::new(gas_limit),
+            energy: Energy::new(energy_limit),
             memory_limit,
         }
     }
@@ -102,8 +102,8 @@ impl Interpreter {
         &self.contract
     }
 
-    pub fn gas(&self) -> &Gas {
-        &self.gas
+    pub fn energy(&self) -> &Energy {
+        &self.energy
     }
 
     /// Reference of interpreter memory.

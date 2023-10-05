@@ -62,7 +62,7 @@ fn ec_recover_run(i: &[u8], target_gas: u64) -> PrecompileResult {
     const ECRECOVER_BASE: u64 = 3_000;
 
     if ECRECOVER_BASE > target_gas {
-        return Err(Error::OutOfGas);
+        return Err(Error::OutOfEnergy);
     }
     let mut input = [0u8; 128];
     input[..min(i.len(), 128)].copy_from_slice(&i[..min(i.len(), 128)]);

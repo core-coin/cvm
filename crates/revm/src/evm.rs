@@ -165,15 +165,8 @@ pub fn to_precompile_id(spec_id: SpecId) -> revm_precompile::SpecId {
         SpecId::BYZANTIUM | SpecId::CONSTANTINOPLE | SpecId::PETERSBURG => {
             revm_precompile::SpecId::BYZANTIUM
         }
-        SpecId::ISTANBUL | SpecId::MUIR_GLACIER => revm_precompile::SpecId::ISTANBUL,
-        SpecId::BERLIN
-        | SpecId::LONDON
-        | SpecId::ARROW_GLACIER
-        | SpecId::GRAY_GLACIER
-        | SpecId::MERGE
-        | SpecId::SHANGHAI
-        | SpecId::CANCUN
-        | SpecId::LATEST => revm_precompile::SpecId::BERLIN,
+        SpecId::ISTANBUL => revm_precompile::SpecId::ISTANBUL,
+        SpecId::LATEST => revm_precompile::SpecId::ISTANBUL,
     }
 }
 
@@ -195,16 +188,9 @@ pub fn evm_inner<'a, DB: Database, const INSPECT: bool>(
         SpecId::PETERSBURG | SpecId::CONSTANTINOPLE => {
             create_evm!(PetersburgSpec, db, env, insp, network)
         }
-        SpecId::ISTANBUL | SpecId::MUIR_GLACIER => {
+        SpecId::ISTANBUL => {
             create_evm!(IstanbulSpec, db, env, insp, network)
         }
-        SpecId::BERLIN => create_evm!(BerlinSpec, db, env, insp, network),
-        SpecId::LONDON | SpecId::ARROW_GLACIER | SpecId::GRAY_GLACIER => {
-            create_evm!(LondonSpec, db, env, insp, network)
-        }
-        SpecId::MERGE => create_evm!(MergeSpec, db, env, insp, network),
-        SpecId::SHANGHAI => create_evm!(ShanghaiSpec, db, env, insp, network),
-        SpecId::CANCUN => create_evm!(LatestSpec, db, env, insp, network),
         SpecId::LATEST => create_evm!(LatestSpec, db, env, insp, network),
     }
 }

@@ -4,7 +4,7 @@ use bytes::Bytes;
 use revm::{
     db::BenchmarkDB,
     interpreter::{analysis::to_analysed, BytecodeLocked, Contract, DummyHost, Interpreter},
-    primitives::{BerlinSpec, Bytecode, TransactTo},
+    primitives::{Bytecode, IstanbulSpec, TransactTo},
 };
 extern crate alloc;
 
@@ -16,7 +16,7 @@ pub fn simple_example() {
     let bytecode = to_analysed(Bytecode::new_raw(contract_data));
     evm.database(BenchmarkDB::new_bytecode(bytecode.clone()));
 
-    // execution globals block hash/gas_limit/coinbase/timestamp..
+    // execution globals block hash/energy_limit/coinbase/timestamp..
     evm.env.tx.caller = "0x10000000000000000000000000000000000000000000"
         .parse()
         .unwrap();
@@ -52,7 +52,7 @@ pub fn simple_example() {
     let mut host = DummyHost::new(env);
     microbench::bench(&bench_options, "Snailtracer Interpreter benchmark", || {
         let mut interpreter = Interpreter::new(contract.clone(), u64::MAX, false);
-        interpreter.run::<_, BerlinSpec>(&mut host);
+        interpreter.run::<_, IstanbulSpec>(&mut host);
         host.clear()
     });
 }

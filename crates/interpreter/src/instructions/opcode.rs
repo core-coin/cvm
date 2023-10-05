@@ -1,4 +1,4 @@
-use crate::gas;
+use crate::energy;
 use crate::primitives::SpecId;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -460,7 +460,7 @@ impl OpInfo {
         self.data & JUMP_MASK == JUMP_MASK
     }
     #[inline(always)]
-    pub fn is_gas_block_end(&self) -> bool {
+    pub fn is_energy_block_end(&self) -> bool {
         self.data & GAS_BLOCK_END_MASK == GAS_BLOCK_END_MASK
     }
     #[inline(always)]
@@ -469,7 +469,7 @@ impl OpInfo {
     }
 
     #[inline(always)]
-    pub fn get_gas(&self) -> u32 {
+    pub fn get_energy(&self) -> u32 {
         self.data & GAS_MASK
     }
 
@@ -477,21 +477,23 @@ impl OpInfo {
         Self { data: 0 }
     }
 
-    pub const fn gas_block_end(gas: u64) -> Self {
+    pub const fn energy_block_end(energy: u64) -> Self {
         Self {
-            data: gas as u32 | GAS_BLOCK_END_MASK,
+            data: energy as u32 | GAS_BLOCK_END_MASK,
         }
     }
-    pub const fn dynamic_gas() -> Self {
+    pub const fn dynamic_energy() -> Self {
         Self { data: 0 }
     }
 
-    pub const fn gas(gas: u64) -> Self {
-        Self { data: gas as u32 }
+    pub const fn energy(energy: u64) -> Self {
+        Self {
+            data: energy as u32,
+        }
     }
     pub const fn push_opcode() -> Self {
         Self {
-            data: gas::VERYLOW as u32 | IS_PUSH_MASK,
+            data: energy::VERYLOW as u32 | IS_PUSH_MASK,
         }
     }
 
@@ -502,57 +504,57 @@ impl OpInfo {
     }
 }
 
-macro_rules! gas_opcodee {
+macro_rules! energy_opcodee {
     ($name:ident, $spec_id:expr) => {
         const $name: &'static [OpInfo; 256] = &[
-            /* 0x00  STOP */ OpInfo::gas_block_end(0),
-            /* 0x01  ADD */ OpInfo::gas(gas::VERYLOW),
-            /* 0x02  MUL */ OpInfo::gas(gas::LOW),
-            /* 0x03  SUB */ OpInfo::gas(gas::VERYLOW),
-            /* 0x04  DIV */ OpInfo::gas(gas::LOW),
-            /* 0x05  SDIV */ OpInfo::gas(gas::LOW),
-            /* 0x06  MOD */ OpInfo::gas(gas::LOW),
-            /* 0x07  SMOD */ OpInfo::gas(gas::LOW),
-            /* 0x08  ADDMOD */ OpInfo::gas(gas::MID),
-            /* 0x09  MULMOD */ OpInfo::gas(gas::MID),
-            /* 0x0a  EXP */ OpInfo::dynamic_gas(),
-            /* 0x0b  SIGNEXTEND */ OpInfo::gas(gas::LOW),
+            /* 0x00  STOP */ OpInfo::energy_block_end(0),
+            /* 0x01  ADD */ OpInfo::energy(energy::VERYLOW),
+            /* 0x02  MUL */ OpInfo::energy(energy::LOW),
+            /* 0x03  SUB */ OpInfo::energy(energy::VERYLOW),
+            /* 0x04  DIV */ OpInfo::energy(energy::LOW),
+            /* 0x05  SDIV */ OpInfo::energy(energy::LOW),
+            /* 0x06  MOD */ OpInfo::energy(energy::LOW),
+            /* 0x07  SMOD */ OpInfo::energy(energy::LOW),
+            /* 0x08  ADDMOD */ OpInfo::energy(energy::MID),
+            /* 0x09  MULMOD */ OpInfo::energy(energy::MID),
+            /* 0x0a  EXP */ OpInfo::dynamic_energy(),
+            /* 0x0b  SIGNEXTEND */ OpInfo::energy(energy::LOW),
             /* 0x0c */ OpInfo::none(),
             /* 0x0d */ OpInfo::none(),
             /* 0x0e */ OpInfo::none(),
             /* 0x0f */ OpInfo::none(),
-            /* 0x10  LT */ OpInfo::gas(gas::VERYLOW),
-            /* 0x11  GT */ OpInfo::gas(gas::VERYLOW),
-            /* 0x12  SLT */ OpInfo::gas(gas::VERYLOW),
-            /* 0x13  SGT */ OpInfo::gas(gas::VERYLOW),
-            /* 0x14  EQ */ OpInfo::gas(gas::VERYLOW),
-            /* 0x15  ISZERO */ OpInfo::gas(gas::VERYLOW),
-            /* 0x16  AND */ OpInfo::gas(gas::VERYLOW),
-            /* 0x17  OR */ OpInfo::gas(gas::VERYLOW),
-            /* 0x18  XOR */ OpInfo::gas(gas::VERYLOW),
-            /* 0x19  NOT */ OpInfo::gas(gas::VERYLOW),
-            /* 0x1a  BYTE */ OpInfo::gas(gas::VERYLOW),
+            /* 0x10  LT */ OpInfo::energy(energy::VERYLOW),
+            /* 0x11  GT */ OpInfo::energy(energy::VERYLOW),
+            /* 0x12  SLT */ OpInfo::energy(energy::VERYLOW),
+            /* 0x13  SGT */ OpInfo::energy(energy::VERYLOW),
+            /* 0x14  EQ */ OpInfo::energy(energy::VERYLOW),
+            /* 0x15  ISZERO */ OpInfo::energy(energy::VERYLOW),
+            /* 0x16  AND */ OpInfo::energy(energy::VERYLOW),
+            /* 0x17  OR */ OpInfo::energy(energy::VERYLOW),
+            /* 0x18  XOR */ OpInfo::energy(energy::VERYLOW),
+            /* 0x19  NOT */ OpInfo::energy(energy::VERYLOW),
+            /* 0x1a  BYTE */ OpInfo::energy(energy::VERYLOW),
             /* 0x1b  SHL */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::CONSTANTINOPLE) {
-                gas::VERYLOW
+            OpInfo::energy(if SpecId::enabled($spec_id, SpecId::CONSTANTINOPLE) {
+                energy::VERYLOW
             } else {
                 0
             }),
             /* 0x1c  SHR */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::CONSTANTINOPLE) {
-                gas::VERYLOW
+            OpInfo::energy(if SpecId::enabled($spec_id, SpecId::CONSTANTINOPLE) {
+                energy::VERYLOW
             } else {
                 0
             }),
             /* 0x1d  SAR */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::CONSTANTINOPLE) {
-                gas::VERYLOW
+            OpInfo::energy(if SpecId::enabled($spec_id, SpecId::CONSTANTINOPLE) {
+                energy::VERYLOW
             } else {
                 0
             }),
             /* 0x1e */ OpInfo::none(),
             /* 0x1f */ OpInfo::none(),
-            /* 0x20  KECCAK256 */ OpInfo::dynamic_gas(),
+            /* 0x20  KECCAK256 */ OpInfo::dynamic_energy(),
             /* 0x21 */ OpInfo::none(),
             /* 0x22 */ OpInfo::none(),
             /* 0x23 */ OpInfo::none(),
@@ -568,75 +570,58 @@ macro_rules! gas_opcodee {
             /* 0x2d */ OpInfo::none(),
             /* 0x2e */ OpInfo::none(),
             /* 0x2f */ OpInfo::none(),
-            /* 0x30  ADDRESS */ OpInfo::gas(gas::BASE),
-            /* 0x31  BALANCE */ OpInfo::dynamic_gas(),
-            /* 0x32  ORIGIN */ OpInfo::gas(gas::BASE),
-            /* 0x33  CALLER */ OpInfo::gas(gas::BASE),
-            /* 0x34  CALLVALUE */ OpInfo::gas(gas::BASE),
-            /* 0x35  CALLDATALOAD */ OpInfo::gas(gas::VERYLOW),
-            /* 0x36  CALLDATASIZE */ OpInfo::gas(gas::BASE),
-            /* 0x37  CALLDATACOPY */ OpInfo::dynamic_gas(),
-            /* 0x38  CODESIZE */ OpInfo::gas(gas::BASE),
-            /* 0x39  CODECOPY */ OpInfo::dynamic_gas(),
-            /* 0x3a  GASPRICE */ OpInfo::gas(gas::BASE),
+            /* 0x30  ADDRESS */ OpInfo::energy(energy::BASE),
+            /* 0x31  BALANCE */ OpInfo::dynamic_energy(),
+            /* 0x32  ORIGIN */ OpInfo::energy(energy::BASE),
+            /* 0x33  CALLER */ OpInfo::energy(energy::BASE),
+            /* 0x34  CALLVALUE */ OpInfo::energy(energy::BASE),
+            /* 0x35  CALLDATALOAD */ OpInfo::energy(energy::VERYLOW),
+            /* 0x36  CALLDATASIZE */ OpInfo::energy(energy::BASE),
+            /* 0x37  CALLDATACOPY */ OpInfo::dynamic_energy(),
+            /* 0x38  CODESIZE */ OpInfo::energy(energy::BASE),
+            /* 0x39  CODECOPY */ OpInfo::dynamic_energy(),
+            /* 0x3a  energyPRICE */ OpInfo::energy(energy::BASE),
             /* 0x3b  EXTCODESIZE */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::BERLIN) {
-                gas::WARM_STORAGE_READ_COST // add only part of gas
-            } else if SpecId::enabled($spec_id, SpecId::TANGERINE) {
+            OpInfo::energy(if SpecId::enabled($spec_id, SpecId::TANGERINE) {
                 700
             } else {
                 20
             }),
             /* 0x3c  EXTCODECOPY */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::BERLIN) {
-                gas::WARM_STORAGE_READ_COST // add only part of gas
-            } else if SpecId::enabled($spec_id, SpecId::TANGERINE) {
+            OpInfo::energy(if SpecId::enabled($spec_id, SpecId::TANGERINE) {
                 700
             } else {
                 20
             }),
             /* 0x3d  RETURNDATASIZE */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::BYZANTIUM) {
-                gas::BASE
+            OpInfo::energy(if SpecId::enabled($spec_id, SpecId::BYZANTIUM) {
+                energy::BASE
             } else {
                 0
             }),
-            /* 0x3e  RETURNDATACOPY */ OpInfo::dynamic_gas(),
+            /* 0x3e  RETURNDATACOPY */ OpInfo::dynamic_energy(),
             /* 0x3f  EXTCODEHASH */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::BERLIN) {
-                gas::WARM_STORAGE_READ_COST // add only part of gas
-            } else if SpecId::enabled($spec_id, SpecId::ISTANBUL) {
-                700
-            } else if SpecId::enabled($spec_id, SpecId::PETERSBURG) {
-                // constantinople
-                400
-            } else {
-                0 // not enabled
-            }),
-            /* 0x40  BLOCKHASH */ OpInfo::gas(gas::BLOCKHASH),
-            /* 0x41  COINBASE */ OpInfo::gas(gas::BASE),
-            /* 0x42  TIMESTAMP */ OpInfo::gas(gas::BASE),
-            /* 0x43  NUMBER */ OpInfo::gas(gas::BASE),
-            /* 0x44  DIFFICULTY */ OpInfo::gas(gas::BASE),
-            /* 0x45  GASLIMIT */ OpInfo::gas(gas::BASE),
+            OpInfo::energy(700),
+            /* 0x40  BLOCKHASH */ OpInfo::energy(energy::BLOCKHASH),
+            /* 0x41  COINBASE */ OpInfo::energy(energy::BASE),
+            /* 0x42  TIMESTAMP */ OpInfo::energy(energy::BASE),
+            /* 0x43  NUMBER */ OpInfo::energy(energy::BASE),
+            /* 0x44  DIFFICULTY */ OpInfo::energy(energy::BASE),
+            /* 0x45  energyLIMIT */ OpInfo::energy(energy::BASE),
             /* 0x46  CHAINID */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::ISTANBUL) {
-                gas::BASE
+            OpInfo::energy(if SpecId::enabled($spec_id, SpecId::ISTANBUL) {
+                energy::BASE
             } else {
                 0
             }),
             /* 0x47  SELFBALANCE */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::ISTANBUL) {
-                gas::LOW
+            OpInfo::energy(if SpecId::enabled($spec_id, SpecId::ISTANBUL) {
+                energy::LOW
             } else {
                 0
             }),
             /* 0x48  BASEFEE */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::LONDON) {
-                gas::BASE
-            } else {
-                0
-            }),
+            OpInfo::energy(0),
             /* 0x49 */ OpInfo::none(),
             /* 0x4a */ OpInfo::none(),
             /* 0x4b */ OpInfo::none(),
@@ -644,39 +629,27 @@ macro_rules! gas_opcodee {
             /* 0x4d */ OpInfo::none(),
             /* 0x4e */ OpInfo::none(),
             /* 0x4f */ OpInfo::none(),
-            /* 0x50  POP */ OpInfo::gas(gas::BASE),
-            /* 0x51  MLOAD */ OpInfo::gas(gas::VERYLOW),
-            /* 0x52  MSTORE */ OpInfo::gas(gas::VERYLOW),
-            /* 0x53  MSTORE8 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x54  SLOAD */ OpInfo::dynamic_gas(),
-            /* 0x55  SSTORE */ OpInfo::gas_block_end(0),
-            /* 0x56  JUMP */ OpInfo::gas_block_end(gas::MID),
-            /* 0x57  JUMPI */ OpInfo::gas_block_end(gas::HIGH),
-            /* 0x58  PC */ OpInfo::gas(gas::BASE),
-            /* 0x59  MSIZE */ OpInfo::gas(gas::BASE),
-            /* 0x5a  GAS */ OpInfo::gas_block_end(gas::BASE),
+            /* 0x50  POP */ OpInfo::energy(energy::BASE),
+            /* 0x51  MLOAD */ OpInfo::energy(energy::VERYLOW),
+            /* 0x52  MSTORE */ OpInfo::energy(energy::VERYLOW),
+            /* 0x53  MSTORE8 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x54  SLOAD */ OpInfo::dynamic_energy(),
+            /* 0x55  SSTORE */ OpInfo::energy_block_end(0),
+            /* 0x56  JUMP */ OpInfo::energy_block_end(energy::MID),
+            /* 0x57  JUMPI */ OpInfo::energy_block_end(energy::HIGH),
+            /* 0x58  PC */ OpInfo::energy(energy::BASE),
+            /* 0x59  MSIZE */ OpInfo::energy(energy::BASE),
+            /* 0x5a  energy */ OpInfo::energy_block_end(energy::BASE),
             /* 0x5b  JUMPDEST */
-            // gas::JUMPDEST gas is calculated in function call,
+            // energy::JUMPDEST energy is calculated in function call,
             OpInfo::jumpdest(),
             /* 0x5c TLOAD */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::CANCUN) {
-                gas::WARM_STORAGE_READ_COST
-            } else {
-                0
-            }),
+            OpInfo::energy(0),
             /* 0x5d TSTORE */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::CANCUN) {
-                gas::WARM_STORAGE_READ_COST
-            } else {
-                0
-            }),
-            /* 0x5e MCOPY */ OpInfo::dynamic_gas(),
+            OpInfo::energy(0),
+            /* 0x5e MCOPY */ OpInfo::dynamic_energy(),
             /* 0x5f PUSH0 */
-            OpInfo::gas(if SpecId::enabled($spec_id, SpecId::SHANGHAI) {
-                gas::BASE
-            } else {
-                0
-            }),
+            OpInfo::energy(0),
             /* 0x60  PUSH1 */ OpInfo::push_opcode(),
             /* 0x61  PUSH2 */ OpInfo::push_opcode(),
             /* 0x62  PUSH3 */ OpInfo::push_opcode(),
@@ -709,43 +682,43 @@ macro_rules! gas_opcodee {
             /* 0x7d  PUSH30 */ OpInfo::push_opcode(),
             /* 0x7e  PUSH31 */ OpInfo::push_opcode(),
             /* 0x7f  PUSH32 */ OpInfo::push_opcode(),
-            /* 0x80  DUP1 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x81  DUP2 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x82  DUP3 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x83  DUP4 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x84  DUP5 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x85  DUP6 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x86  DUP7 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x87  DUP8 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x88  DUP9 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x89  DUP10 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x8a  DUP11 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x8b  DUP12 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x8c  DUP13 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x8d  DUP14 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x8e  DUP15 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x8f  DUP16 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x90  SWAP1 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x91  SWAP2 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x92  SWAP3 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x93  SWAP4 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x94  SWAP5 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x95  SWAP6 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x96  SWAP7 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x97  SWAP8 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x98  SWAP9 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x99  SWAP10 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x9a  SWAP11 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x9b  SWAP12 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x9c  SWAP13 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x9d  SWAP14 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x9e  SWAP15 */ OpInfo::gas(gas::VERYLOW),
-            /* 0x9f  SWAP16 */ OpInfo::gas(gas::VERYLOW),
-            /* 0xa0  LOG0 */ OpInfo::dynamic_gas(),
-            /* 0xa1  LOG1 */ OpInfo::dynamic_gas(),
-            /* 0xa2  LOG2 */ OpInfo::dynamic_gas(),
-            /* 0xa3  LOG3 */ OpInfo::dynamic_gas(),
-            /* 0xa4  LOG4 */ OpInfo::dynamic_gas(),
+            /* 0x80  DUP1 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x81  DUP2 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x82  DUP3 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x83  DUP4 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x84  DUP5 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x85  DUP6 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x86  DUP7 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x87  DUP8 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x88  DUP9 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x89  DUP10 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x8a  DUP11 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x8b  DUP12 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x8c  DUP13 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x8d  DUP14 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x8e  DUP15 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x8f  DUP16 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x90  SWAP1 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x91  SWAP2 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x92  SWAP3 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x93  SWAP4 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x94  SWAP5 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x95  SWAP6 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x96  SWAP7 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x97  SWAP8 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x98  SWAP9 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x99  SWAP10 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x9a  SWAP11 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x9b  SWAP12 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x9c  SWAP13 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x9d  SWAP14 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x9e  SWAP15 */ OpInfo::energy(energy::VERYLOW),
+            /* 0x9f  SWAP16 */ OpInfo::energy(energy::VERYLOW),
+            /* 0xa0  LOG0 */ OpInfo::dynamic_energy(),
+            /* 0xa1  LOG1 */ OpInfo::dynamic_energy(),
+            /* 0xa2  LOG2 */ OpInfo::dynamic_energy(),
+            /* 0xa3  LOG3 */ OpInfo::dynamic_energy(),
+            /* 0xa4  LOG4 */ OpInfo::dynamic_energy(),
             /* 0xa5 */ OpInfo::none(),
             /* 0xa6 */ OpInfo::none(),
             /* 0xa7 */ OpInfo::none(),
@@ -821,102 +794,70 @@ macro_rules! gas_opcodee {
             /* 0xed */ OpInfo::none(),
             /* 0xee */ OpInfo::none(),
             /* 0xef */ OpInfo::none(),
-            /* 0xf0  CREATE */ OpInfo::gas_block_end(0),
-            /* 0xf1  CALL */ OpInfo::gas_block_end(0),
-            /* 0xf2  CALLCODE */ OpInfo::gas_block_end(0),
-            /* 0xf3  RETURN */ OpInfo::gas_block_end(0),
-            /* 0xf4  DELEGATECALL */ OpInfo::gas_block_end(0),
-            /* 0xf5  CREATE2 */ OpInfo::gas_block_end(0),
+            /* 0xf0  CREATE */ OpInfo::energy_block_end(0),
+            /* 0xf1  CALL */ OpInfo::energy_block_end(0),
+            /* 0xf2  CALLCODE */ OpInfo::energy_block_end(0),
+            /* 0xf3  RETURN */ OpInfo::energy_block_end(0),
+            /* 0xf4  DELEGATECALL */ OpInfo::energy_block_end(0),
+            /* 0xf5  CREATE2 */ OpInfo::energy_block_end(0),
             /* 0xf6 */ OpInfo::none(),
             /* 0xf7 */ OpInfo::none(),
             /* 0xf8 */ OpInfo::none(),
             /* 0xf9 */ OpInfo::none(),
-            /* 0xfa  STATICCALL */ OpInfo::gas_block_end(0),
+            /* 0xfa  STATICCALL */ OpInfo::energy_block_end(0),
             /* 0xfb */ OpInfo::none(),
             /* 0xfc */ OpInfo::none(),
-            /* 0xfd  REVERT */ OpInfo::gas_block_end(0),
-            /* 0xfe  INVALID */ OpInfo::gas_block_end(0),
-            /* 0xff  SELFDESTRUCT */ OpInfo::gas_block_end(0),
+            /* 0xfd  REVERT */ OpInfo::energy_block_end(0),
+            /* 0xfe  INVALID */ OpInfo::energy_block_end(0),
+            /* 0xff  SELFDESTRUCT */ OpInfo::energy_block_end(0),
         ];
     };
 }
 
-pub const fn spec_opcode_gas(spec_id: SpecId) -> &'static [OpInfo; 256] {
+pub const fn spec_opcode_energy(spec_id: SpecId) -> &'static [OpInfo; 256] {
     match spec_id {
         SpecId::FRONTIER => {
-            gas_opcodee!(FRONTIER, SpecId::FRONTIER);
+            energy_opcodee!(FRONTIER, SpecId::FRONTIER);
             FRONTIER
         }
         SpecId::FRONTIER_THAWING => {
-            gas_opcodee!(FRONTIER_THAWING, SpecId::FRONTIER_THAWING);
+            energy_opcodee!(FRONTIER_THAWING, SpecId::FRONTIER_THAWING);
             FRONTIER_THAWING
         }
         SpecId::HOMESTEAD => {
-            gas_opcodee!(HOMESTEAD, SpecId::HOMESTEAD);
+            energy_opcodee!(HOMESTEAD, SpecId::HOMESTEAD);
             HOMESTEAD
         }
         SpecId::DAO_FORK => {
-            gas_opcodee!(DAO_FORK, SpecId::DAO_FORK);
+            energy_opcodee!(DAO_FORK, SpecId::DAO_FORK);
             DAO_FORK
         }
         SpecId::TANGERINE => {
-            gas_opcodee!(TANGERINE, SpecId::TANGERINE);
+            energy_opcodee!(TANGERINE, SpecId::TANGERINE);
             TANGERINE
         }
         SpecId::SPURIOUS_DRAGON => {
-            gas_opcodee!(SPURIOUS_DRAGON, SpecId::SPURIOUS_DRAGON);
+            energy_opcodee!(SPURIOUS_DRAGON, SpecId::SPURIOUS_DRAGON);
             SPURIOUS_DRAGON
         }
         SpecId::BYZANTIUM => {
-            gas_opcodee!(BYZANTIUM, SpecId::BYZANTIUM);
+            energy_opcodee!(BYZANTIUM, SpecId::BYZANTIUM);
             BYZANTIUM
         }
         SpecId::CONSTANTINOPLE => {
-            gas_opcodee!(CONSTANTINOPLE, SpecId::CONSTANTINOPLE);
+            energy_opcodee!(CONSTANTINOPLE, SpecId::CONSTANTINOPLE);
             CONSTANTINOPLE
         }
         SpecId::PETERSBURG => {
-            gas_opcodee!(PETERSBURG, SpecId::PETERSBURG);
+            energy_opcodee!(PETERSBURG, SpecId::PETERSBURG);
             PETERSBURG
         }
         SpecId::ISTANBUL => {
-            gas_opcodee!(ISTANBUL, SpecId::ISTANBUL);
+            energy_opcodee!(ISTANBUL, SpecId::ISTANBUL);
             ISTANBUL
         }
-        SpecId::MUIR_GLACIER => {
-            gas_opcodee!(MUIRGLACIER, SpecId::MUIR_GLACIER);
-            MUIRGLACIER
-        }
-        SpecId::BERLIN => {
-            gas_opcodee!(BERLIN, SpecId::BERLIN);
-            BERLIN
-        }
-        SpecId::LONDON => {
-            gas_opcodee!(LONDON, SpecId::LONDON);
-            LONDON
-        }
-        SpecId::ARROW_GLACIER => {
-            gas_opcodee!(ARROW_GLACIER, SpecId::ARROW_GLACIER);
-            ARROW_GLACIER
-        }
-        SpecId::GRAY_GLACIER => {
-            gas_opcodee!(GRAY_GLACIER, SpecId::GRAY_GLACIER);
-            GRAY_GLACIER
-        }
-        SpecId::MERGE => {
-            gas_opcodee!(MERGE, SpecId::MERGE);
-            MERGE
-        }
-        SpecId::SHANGHAI => {
-            gas_opcodee!(SHANGAI, SpecId::SHANGHAI);
-            SHANGAI
-        }
-        SpecId::CANCUN => {
-            gas_opcodee!(CANCUN, SpecId::CANCUN);
-            CANCUN
-        }
         SpecId::LATEST => {
-            gas_opcodee!(LATEST, SpecId::LATEST);
+            energy_opcodee!(LATEST, SpecId::LATEST);
             LATEST
         }
     }

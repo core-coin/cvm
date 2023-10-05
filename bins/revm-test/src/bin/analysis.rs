@@ -13,7 +13,7 @@ fn main() {
     // BenchmarkDB is dummy state that implements Database trait.
     let mut evm = revm::new();
 
-    // execution globals block hash/gas_limit/coinbase/timestamp..
+    // execution globals block hash/energy_limit/coinbase/timestamp..
     evm.env.tx.caller = "0x10000000000000000000000000000000000000000000"
         .parse()
         .unwrap();

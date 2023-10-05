@@ -13,22 +13,11 @@ pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
     Precompile::Standard(byzantium_run as StandardPrecompileFn),
 );
 
-pub const BERLIN: PrecompileAddress = PrecompileAddress(
-    crate::u64_to_b176(5),
-    Precompile::Standard(berlin_run as StandardPrecompileFn),
-);
-
 /// See: https://eips.ethereum.org/EIPS/eip-198
 /// See: https://etherscan.io/address/0000000000000000000000000000000000000005
-fn byzantium_run(input: &[u8], gas_limit: u64) -> PrecompileResult {
-    run_inner(input, gas_limit, 0, |a, b, c, d| {
+fn byzantium_run(input: &[u8], energy_limit: u64) -> PrecompileResult {
+    run_inner(input, energy_limit, 0, |a, b, c, d| {
         byzantium_gas_calc(a, b, c, d)
-    })
-}
-
-pub fn berlin_run(input: &[u8], gas_limit: u64) -> PrecompileResult {
-    run_inner(input, gas_limit, 200, |a, b, c, d| {
-        berlin_gas_calc(a, b, c, d)
     })
 }
 
@@ -63,7 +52,7 @@ macro_rules! read_u64_with_overflow {
     }};
 }
 
-fn run_inner<F>(input: &[u8], gas_limit: u64, min_gas: u64, calc_gas: F) -> PrecompileResult
+fn run_inner<F>(input: &[u8], energy_limit: u64, min_gas: u64, calc_gas: F) -> PrecompileResult
 where
     F: FnOnce(u64, u64, u64, &BigUint) -> u64,
 {
@@ -104,8 +93,8 @@ where
         };
 
         let gas_cost = calc_gas(base_len as u64, exp_len as u64, mod_len as u64, &exp_highp);
-        if gas_cost > gas_limit {
-            return Err(Error::OutOfGas);
+        if gas_cost > energy_limit {
+            return Err(Error::OutOfEnergy);
         }
 
         let read_big = |from: usize, to: usize| {
@@ -167,30 +156,6 @@ fn byzantium_gas_calc(base_len: u64, exp_len: u64, mod_len: u64, exp_highp: &Big
         u64::MAX
     } else {
         gas.as_limbs()[0]
-    }
-}
-
-// Calculate gas cost according to EIP 2565:
-// https://eips.ethereum.org/EIPS/eip-2565
-fn berlin_gas_calc(base_length: u64, exp_length: u64, mod_length: u64, exp_highp: &BigUint) -> u64 {
-    fn calculate_multiplication_complexity(base_length: u64, mod_length: u64) -> U256 {
-        let max_length = max(base_length, mod_length);
-        let mut words = max_length / 8;
-        if max_length % 8 > 0 {
-            words += 1;
-        }
-        let words = U256::from(words);
-        words * words
-    }
-
-    let multiplication_complexity = calculate_multiplication_complexity(base_length, mod_length);
-    let iteration_count = calculate_iteration_count(exp_length, exp_highp);
-    let gas = (multiplication_complexity * U256::from(iteration_count)) / U256::from(3);
-
-    if gas.as_limbs()[1] != 0 || gas.as_limbs()[2] != 0 || gas.as_limbs()[3] != 0 {
-        u64::MAX
-    } else {
-        max(200, gas.as_limbs()[0])
     }
 }
 
@@ -369,11 +334,6 @@ mod tests {
         5_580, 5_580, 89_292, 17_868, 17_868, 285_900,
     ];
 
-    const BERLIN_GAS: [u64; 19] = [
-        44_954, 1_360, 1_360, 1_360, 200, 200, 341, 200, 200, 1_365, 341, 341, 5_461, 1_365, 1_365,
-        21_845, 5_461, 5_461, 87_381,
-    ];
-
     #[test]
     fn test_byzantium_modexp_gas() {
         for (test, &test_gas) in TESTS.iter().zip(BYZANTIUM_GAS.iter()) {
@@ -388,27 +348,5 @@ mod tests {
             );
             assert_eq!(res.1, expected, "test:{}", test.name);
         }
-    }
-
-    #[test]
-    fn test_berlin_modexp_gas() {
-        for (test, &test_gas) in TESTS.iter().zip(BERLIN_GAS.iter()) {
-            let input = hex::decode(test.input).unwrap();
-            let res = berlin_run(&input, 100_000_000).unwrap();
-            let expected = hex::decode(test.expected).unwrap();
-            assert_eq!(
-                res.0, test_gas,
-                "used gas not maching for test: {}",
-                test.name
-            );
-            assert_eq!(res.1, expected, "test:{}", test.name);
-        }
-    }
-
-    #[test]
-    fn test_berlin_modexp_empty_input() {
-        let res = berlin_run(&[], 100_000).unwrap();
-        let expected: Vec<u8> = Vec::new();
-        assert_eq!(res.1, expected)
     }
 }

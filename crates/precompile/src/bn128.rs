@@ -9,7 +9,7 @@ pub mod add {
         ADDRESS,
         Precompile::Standard(|input: &[u8], target_gas: u64| -> PrecompileResult {
             if 150 > target_gas {
-                return Err(Error::OutOfGas);
+                return Err(Error::OutOfEnergy);
             }
             Ok((150, super::run_add(input)?))
         }),
@@ -19,7 +19,7 @@ pub mod add {
         ADDRESS,
         Precompile::Standard(|input: &[u8], target_gas: u64| -> PrecompileResult {
             if 500 > target_gas {
-                return Err(Error::OutOfGas);
+                return Err(Error::OutOfEnergy);
             }
             Ok((500, super::run_add(input)?))
         }),
@@ -31,9 +31,9 @@ pub mod mul {
     const ADDRESS: B176 = crate::u64_to_b176(7);
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], gas_limit: u64| -> PrecompileResult {
-            if 6_000 > gas_limit {
-                return Err(Error::OutOfGas);
+        Precompile::Standard(|input: &[u8], energy_limit: u64| -> PrecompileResult {
+            if 6_000 > energy_limit {
+                return Err(Error::OutOfEnergy);
             }
             Ok((6_000, super::run_mul(input)?))
         }),
@@ -41,9 +41,9 @@ pub mod mul {
 
     pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], gas_limit: u64| -> PrecompileResult {
-            if 40_000 > gas_limit {
-                return Err(Error::OutOfGas);
+        Precompile::Standard(|input: &[u8], energy_limit: u64| -> PrecompileResult {
+            if 40_000 > energy_limit {
+                return Err(Error::OutOfEnergy);
             }
             Ok((40_000, super::run_mul(input)?))
         }),
@@ -163,12 +163,12 @@ fn run_pair(
     input: &[u8],
     pair_per_point_cost: u64,
     pair_base_cost: u64,
-    gas_limit: u64,
+    energy_limit: u64,
 ) -> PrecompileResult {
     let gas_used =
         pair_per_point_cost * input.len() as u64 / PAIR_ELEMENT_LEN as u64 + pair_base_cost;
-    if gas_used > gas_limit {
-        return Err(Error::OutOfGas);
+    if gas_used > energy_limit {
+        return Err(Error::OutOfEnergy);
     }
 
     use bn::{AffineG1, AffineG2, Fq, Fq2, Group, Gt, G1, G2};
@@ -295,7 +295,7 @@ mod tests {
         )
         .unwrap();
         let res = Bn128Add::<Byzantium>::run(&input, 499, &new_context(), false);
-        assert!(matches!(res, Err(Return::OutOfGas)));
+        assert!(matches!(res, Err(Return::OutOfEnergy)));
 
         // no input test
         let input = [0u8; 0];
@@ -358,7 +358,7 @@ mod tests {
         )
         .unwrap();
         let res = Bn128Mul::<Byzantium>::run(&input, 39_999, &new_context(), false);
-        assert!(matches!(res, Err(Return::OutOfGas)));
+        assert!(matches!(res, Err(Return::OutOfEnergy)));
 
         // zero multiplication test
         let input = hex::decode(
@@ -455,7 +455,7 @@ mod tests {
         )
         .unwrap();
         let res = Bn128Pair::<Byzantium>::run(&input, 259_999, &new_context(), false);
-        assert!(matches!(res, Err(Return::OutOfGas)));
+        assert!(matches!(res, Err(Return::OutOfEnergy)));
 
         // no input test
         let input = [0u8; 0];
