@@ -1,7 +1,7 @@
 use crate::{
     energy,
     interpreter::Interpreter,
-    primitives::{sha3 as hash_sha3, Spec, SpecId::*, B256, KECCAK_EMPTY, U256},
+    primitives::{sha3 as hash_sha3, Spec, SpecId::*, B256, SHA3_EMPTY, U256},
     Host, InstructionResult,
 };
 use core::cmp::min;
@@ -11,7 +11,7 @@ pub fn sha3(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
     energy_or_fail!(interpreter, energy::sha3_cost(len as u64));
     let hash = if len == 0 {
-        KECCAK_EMPTY
+        SHA3_EMPTY
     } else {
         let from = as_usize_or_fail!(interpreter, from, InstructionResult::InvalidOperandOOG);
         memory_resize!(interpreter, from, len);

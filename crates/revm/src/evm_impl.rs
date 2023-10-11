@@ -8,7 +8,7 @@ use crate::primitives::{
     EVMResult, Env, ExecutionResult, HashMap, InvalidTransaction, Log, Output, ResultAndState,
     Spec,
     SpecId::{self, *},
-    TransactTo, B176, B256, KECCAK_EMPTY, U256,
+    TransactTo, B176, B256, SHA3_EMPTY, U256,
 };
 use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector};
 use alloc::vec::Vec;
@@ -877,7 +877,7 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
         //asume that all precompiles have some balance
         let is_precompile = self.precompiles.contains(&address);
         if is_precompile && self.data.env.cfg.perf_all_precompiles_have_balance {
-            return Some((KECCAK_EMPTY, is_cold));
+            return Some((SHA3_EMPTY, is_cold));
         }
         if acc.is_empty() {
             // TODO check this for pre tangerine fork

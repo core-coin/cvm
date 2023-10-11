@@ -1,4 +1,4 @@
-use crate::{Bytecode, B176, B256, KECCAK_EMPTY, U256};
+use crate::{Bytecode, B176, B256, SHA3_EMPTY, U256};
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -100,7 +100,7 @@ impl Default for AccountInfo {
     fn default() -> Self {
         Self {
             balance: U256::ZERO,
-            code_hash: KECCAK_EMPTY,
+            code_hash: SHA3_EMPTY,
             code: Some(Bytecode::new()),
             nonce: 0,
         }
@@ -127,7 +127,7 @@ impl AccountInfo {
     }
 
     pub fn is_empty(&self) -> bool {
-        let code_empty = self.code_hash == KECCAK_EMPTY || self.code_hash == B256::zero();
+        let code_empty = self.code_hash == SHA3_EMPTY || self.code_hash == B256::zero();
         self.balance == U256::ZERO && self.nonce == 0 && code_empty
     }
 

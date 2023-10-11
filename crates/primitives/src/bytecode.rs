@@ -1,4 +1,4 @@
-use crate::{sha3, B256, KECCAK_EMPTY};
+use crate::{sha3, B256, SHA3_EMPTY};
 use alloc::{sync::Arc, vec, vec::Vec};
 use bitvec::prelude::{bitvec, Lsb0};
 use bitvec::vec::BitVec;
@@ -54,7 +54,7 @@ impl Bytecode {
     pub fn new() -> Self {
         Bytecode {
             bytecode: vec![0].into(),
-            hash: KECCAK_EMPTY,
+            hash: SHA3_EMPTY,
             state: BytecodeState::Analysed {
                 len: 0,
                 jump_map: JumpMap(Arc::new(bitvec![u8, Lsb0; 0])),
@@ -64,7 +64,7 @@ impl Bytecode {
 
     pub fn new_raw(bytecode: Bytes) -> Self {
         let hash = if bytecode.is_empty() {
-            KECCAK_EMPTY
+            SHA3_EMPTY
         } else {
             sha3(&bytecode)
         };
@@ -94,7 +94,7 @@ impl Bytecode {
     /// that it is safe to iterate over bytecode without checking lengths
     pub unsafe fn new_checked(bytecode: Bytes, len: usize, hash: Option<B256>) -> Self {
         let hash = match hash {
-            None if len == 0 => KECCAK_EMPTY,
+            None if len == 0 => SHA3_EMPTY,
             None => sha3(&bytecode),
             Some(hash) => hash,
         };

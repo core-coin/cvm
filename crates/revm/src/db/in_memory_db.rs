@@ -1,6 +1,6 @@
 use super::{DatabaseCommit, DatabaseRef};
 use crate::primitives::{
-    hash_map::Entry, sha3, Account, AccountInfo, Bytecode, HashMap, Log, B176, B256, KECCAK_EMPTY,
+    hash_map::Entry, sha3, Account, AccountInfo, Bytecode, HashMap, Log, B176, B256, SHA3_EMPTY,
     U256,
 };
 use crate::Database;
@@ -101,7 +101,7 @@ impl AccountState {
 impl<ExtDB: DatabaseRef> CacheDB<ExtDB> {
     pub fn new(db: ExtDB) -> Self {
         let mut contracts = HashMap::new();
-        contracts.insert(KECCAK_EMPTY, Bytecode::new());
+        contracts.insert(SHA3_EMPTY, Bytecode::new());
         contracts.insert(B256::zero(), Bytecode::new());
         Self {
             accounts: HashMap::new(),
@@ -122,7 +122,7 @@ impl<ExtDB: DatabaseRef> CacheDB<ExtDB> {
             }
         }
         if account.code_hash == B256::zero() {
-            account.code_hash = KECCAK_EMPTY;
+            account.code_hash = SHA3_EMPTY;
         }
     }
 

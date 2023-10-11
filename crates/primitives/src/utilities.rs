@@ -44,8 +44,8 @@ impl From<u64> for Network {
     }
 }
 
-pub const KECCAK_EMPTY: B256 = B256(hex!(
-    "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+pub const SHA3_EMPTY: B256 = B256(hex!(
+    "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
 ));
 
 #[inline(always)]

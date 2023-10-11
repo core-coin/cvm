@@ -1,6 +1,6 @@
 use crate::primitives::{hash_map::Entry, Bytecode, Bytes, HashMap, U256};
 use crate::{
-    primitives::{Env, Log, B176, B256, KECCAK_EMPTY},
+    primitives::{Env, Log, B176, B256, SHA3_EMPTY},
     CallInputs, CreateInputs, Energy, Host, InstructionResult, Interpreter, SelfDestructResult,
 };
 
@@ -59,7 +59,7 @@ impl Host for DummyHost {
     }
 
     fn code_hash(&mut self, __address: B176) -> Option<(B256, bool)> {
-        Some((KECCAK_EMPTY, false))
+        Some((SHA3_EMPTY, false))
     }
 
     fn sload(&mut self, __address: B176, index: U256) -> Option<(U256, bool)> {

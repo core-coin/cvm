@@ -1,7 +1,7 @@
 use crate::interpreter::{inner_models::SelfDestructResult, InstructionResult};
 use crate::primitives::{
     db::Database, hash_map::Entry, Account, Bytecode, HashMap, Log, State, StorageSlot, B176,
-    KECCAK_EMPTY, U256,
+    SHA3_EMPTY, U256,
 };
 use alloc::{vec, vec::Vec};
 use core::mem::{self};
@@ -251,7 +251,7 @@ impl JournaledState {
             .iter_mut()
             .for_each(|(_, slot)| *slot = empty.clone());
 
-        acc.info.code_hash = KECCAK_EMPTY;
+        acc.info.code_hash = SHA3_EMPTY;
         acc.info.code = None;
 
         self.journal
@@ -450,7 +450,7 @@ impl JournaledState {
     ) -> Result<(&mut Account, bool), DB::Error> {
         let (acc, is_cold) = self.load_account(address, db)?;
         if acc.info.code.is_none() {
-            if acc.info.code_hash == KECCAK_EMPTY {
+            if acc.info.code_hash == SHA3_EMPTY {
                 let empty = Bytecode::new();
                 acc.info.code = Some(empty);
             } else {
