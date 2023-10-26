@@ -12,9 +12,8 @@ mod stack;
 mod system;
 
 use crate::{interpreter::Interpreter, primitives::Spec, Host};
-pub use opcode::{OpCode, OPCODE_JUMPMAP};
 
-pub use crate::{return_ok, return_revert, InstructionResult};
+pub use crate::InstructionResult;
 pub fn return_stop(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     interpreter.instruction_result = InstructionResult::Stop;
 }
