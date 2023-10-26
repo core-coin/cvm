@@ -143,7 +143,7 @@ impl<DB> EVM<DB> {
 }
 
 macro_rules! create_evm {
-    ($spec:ident, $db:ident,$env:ident,$inspector:ident,$network:ident) => {
+    ($spec:ident, $db:ident,$env:ident,$inspector:ident,$network:expr) => {
         Box::new(EVMImpl::<'a, $spec, DB, INSPECT>::new(
             $db,
             $env,
@@ -176,7 +176,7 @@ pub fn evm_inner<'a, DB: Database, const INSPECT: bool>(
     insp: &'a mut dyn Inspector<DB>,
 ) -> Box<dyn Transact<DB::Error> + 'a> {
     use specification::*;
-    let network = env.cfg.network;
+    let network = env.cfg.network_id;
     match env.cfg.spec_id {
         SpecId::FRONTIER | SpecId::FRONTIER_THAWING => {
             create_evm!(FrontierSpec, db, env, insp, network)

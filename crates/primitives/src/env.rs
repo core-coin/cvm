@@ -1,4 +1,4 @@
-use crate::{Network, SpecId, B176, U256};
+use crate::{SpecId, B176, U256};
 use bytes::Bytes;
 
 #[derive(Clone, Debug, Default)]
@@ -69,7 +69,7 @@ pub enum CreateScheme {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CfgEnv {
-    pub network: Network,
+    pub network_id: u64,
     pub spec_id: SpecId,
     /// If all precompiles have some balance we can skip initially fetching them from the database.
     /// This is is not really needed on mainnet, and defaults to false, but in most cases it is
@@ -117,7 +117,7 @@ pub enum AnalysisKind {
 impl Default for CfgEnv {
     fn default() -> CfgEnv {
         CfgEnv {
-            network: Network::Mainnet,
+            network_id: 1,
             // For the CVM the target is Istanbul
             spec_id: SpecId::ISTANBUL,
             perf_all_precompiles_have_balance: false,
@@ -136,9 +136,9 @@ impl Default for CfgEnv {
 }
 
 impl CfgEnv {
-    pub fn new_with_netowork(network: Network) -> CfgEnv {
+    pub fn new_with_netowork_id(network_id: u64) -> CfgEnv {
         CfgEnv {
-            network,
+            network_id,
             // For the CVM the target is Istanbul
             spec_id: SpecId::ISTANBUL,
             perf_all_precompiles_have_balance: false,
