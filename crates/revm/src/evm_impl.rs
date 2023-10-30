@@ -14,7 +14,6 @@ use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector
 use alloc::vec::Vec;
 use core::{cmp::min, marker::PhantomData};
 use revm_interpreter::energy::Energy;
-use revm_interpreter::primitives::Network;
 use revm_interpreter::MAX_CODE_SIZE;
 use revm_precompile::{Precompile, Precompiles};
 use std::cmp::Ordering;
@@ -30,7 +29,7 @@ pub struct EVMImpl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> {
     data: EVMData<'a, DB>,
     precompiles: Precompiles,
     inspector: &'a mut dyn Inspector<DB>,
-    network: Network,
+    network_id: u64,
     _phantomdata: PhantomData<GSPEC>,
 }
 
@@ -70,7 +69,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
 
         // Check if the transaction's chain id is correct
         if let Some(tx_chain_id) = self.data.env.tx.network_id {
-            if U256::from(tx_chain_id) != self.data.env.cfg.network.as_u256() {
+            if U256::from(tx_chain_id) != U256::from(self.data.env.cfg.network_id) {
                 return Err(InvalidTransaction::InvalidChainId.into());
             }
         }
@@ -253,7 +252,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         env: &'a mut Env,
         inspector: &'a mut dyn Inspector<DB>,
         precompiles: Precompiles,
-        network: Network,
+        network_id: u64,
     ) -> Self {
         let journaled_state = if GSPEC::enabled(SpecId::SPURIOUS_DRAGON) {
             JournaledState::new(precompiles.len())
@@ -269,7 +268,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
             },
             precompiles,
             inspector,
-            network,
+            network_id,
             _phantomdata: PhantomData {},
         }
     }
@@ -468,7 +467,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         let created_address = match inputs.scheme {
             CreateScheme::Create => create_address(inputs.caller, old_nonce),
             CreateScheme::Create2 { salt } => {
-                create2_address(inputs.caller, code_hash, salt, &self.network)
+                create2_address(inputs.caller, code_hash, salt, self.network_id)
             }
         };
         let ret = Some(created_address);

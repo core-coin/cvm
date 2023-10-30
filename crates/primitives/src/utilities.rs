@@ -68,7 +68,8 @@ pub fn create_address(caller: B176, nonce: u64) -> B176 {
 }
 
 /// Returns the address for the `CREATE2` scheme: [`CreateScheme::Create2`]
-pub fn create2_address(caller: B176, code_hash: B256, salt: U256, network: &Network) -> B176 {
+pub fn create2_address(caller: B176, code_hash: B256, salt: U256, network_id: u64) -> B176 {
+    let network = Network::from(network_id);
     let mut hasher = Sha3_256::new();
     hasher.update([0xff]);
     hasher.update(&caller[..]);
@@ -79,7 +80,7 @@ pub fn create2_address(caller: B176, code_hash: B256, salt: U256, network: &Netw
     let addr = B160(hasher.finalize().as_slice()[12..].try_into().unwrap());
 
     // Calculate the checksum and add the network prefix
-    to_ican(&addr, network)
+    to_ican(&addr, &network)
 }
 
 fn to_ican(addr: &B160, network: &Network) -> B176 {
@@ -211,12 +212,7 @@ pub mod tests {
     #[test]
     fn test_create2_one() {
         let caller = B176::from_str("cb72e8cF4629ACB360350399B6CFF367A97CF36E62B9").unwrap();
-        let ican_address = create2_address(
-            caller,
-            B256::repeat_byte(10),
-            U256::from(239048),
-            &Network::Mainnet,
-        );
+        let ican_address = create2_address(caller, B256::repeat_byte(10), U256::from(239048), 1);
 
         assert_eq!(
             ican_address,
@@ -226,12 +222,7 @@ pub mod tests {
     #[test]
     fn test_create2_two() {
         let caller = B176::from_str("cb72e8cF4629ACB360350399B6CFF367A97CF36E62Ba").unwrap();
-        let ican_address = create2_address(
-            caller,
-            B256::repeat_byte(11),
-            U256::from(239048),
-            &Network::Mainnet,
-        );
+        let ican_address = create2_address(caller, B256::repeat_byte(11), U256::from(239048), 1);
 
         assert_eq!(
             ican_address,
@@ -241,12 +232,7 @@ pub mod tests {
     #[test]
     fn test_create2_three() {
         let caller = B176::from_str("cb72e8cF4629ACB360350399B6CFF367A97CF36E62Bb").unwrap();
-        let ican_address = create2_address(
-            caller,
-            B256::repeat_byte(12),
-            U256::from(239048),
-            &Network::Mainnet,
-        );
+        let ican_address = create2_address(caller, B256::repeat_byte(12), U256::from(239048), 1);
 
         assert_eq!(
             ican_address,

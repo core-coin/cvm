@@ -1,13 +1,13 @@
 use crate::{
-    energy, interpreter::Interpreter, primitives::Spec, primitives::SpecId::*, Host,
-    InstructionResult,
+    energy, interpreter::Interpreter, primitives::Spec, primitives::SpecId::*, primitives::U256,
+    Host, InstructionResult,
 };
 
 pub fn network_id<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
     // EIP-1344: ChainID opcode
     check!(interpreter, SPEC::enabled(ISTANBUL));
     energy!(interpreter, energy::BASE);
-    push!(interpreter, host.env().cfg.network.as_u256());
+    push!(interpreter, U256::from(host.env().cfg.network_id));
 }
 
 pub fn coinbase(interpreter: &mut Interpreter, host: &mut dyn Host) {
