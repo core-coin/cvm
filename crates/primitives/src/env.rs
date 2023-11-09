@@ -1,6 +1,7 @@
 use crate::{alloc::vec::Vec, Network, SpecId, B176, B256, U256};
 use bytes::Bytes;
-use core::cmp::min;
+use primitive_types::H176;
+use core::{cmp::min, str::FromStr};
 
 #[derive(Clone, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -177,7 +178,7 @@ impl Default for BlockEnv {
         BlockEnv {
             gas_limit: U256::MAX,
             number: U256::ZERO,
-            coinbase: B176::zero(),
+            coinbase: B176::from(H176::from_str("cb540000000000000000000000000000000000000000").unwrap()),
             timestamp: U256::from(1),
             difficulty: U256::ZERO,
             prevrandao: Some(B256::zero()),
