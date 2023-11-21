@@ -70,7 +70,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
         // Check if the transaction's chain id is correct
         if let Some(tx_chain_id) = self.data.env.tx.network_id {
             if U256::from(tx_chain_id) != U256::from(self.data.env.cfg.network_id) {
-                return Err(InvalidTransaction::InvalidChainId.into());
+                return Err(InvalidTransaction::InvalidNetworkId.into());
             }
         }
 
