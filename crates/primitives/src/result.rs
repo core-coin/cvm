@@ -124,7 +124,7 @@ pub enum InvalidTransaction {
     },
     /// EIP-3860: Limit and meter initcode
     CreateInitcodeSizeLimit,
-    InvalidChainId,
+    InvalidNetworkId,
 }
 
 /// When transaction return successfully without halts.
