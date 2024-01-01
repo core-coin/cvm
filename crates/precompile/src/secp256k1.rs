@@ -1,8 +1,8 @@
-use crate::{CustomPrecompileFn, Error, Precompile, PrecompileAddress, PrecompileResult};
+use crate::{StandardPrecompileFn, Error, Precompile, PrecompileAddress, PrecompileResult};
 use revm_primitives::Network;
 pub const ECRECOVER: PrecompileAddress = PrecompileAddress(
     crate::u64_to_b176(1),
-    Precompile::Custom(ec_recover_run as CustomPrecompileFn),
+    Precompile::Custom(ec_recover_run as StandardPrecompileFn),
 );
 
 #[cfg(not(feature = "secp256k1"))]

@@ -1,12 +1,14 @@
 use crate::{primitives::U256, Error, Precompile, PrecompileAddress, PrecompileResult, B176};
 
 pub mod add {
+    use revm_primitives::Network;
+
     use super::*;
     const ADDRESS: B176 = crate::u64_to_b176(6);
 
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+        Precompile::Standard(|input: &[u8], target_energy: u64, _: Network| -> PrecompileResult {
             if 150 > target_energy {
                 return Err(Error::OutOfEnergy);
             }
@@ -16,7 +18,7 @@ pub mod add {
 
     pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+        Precompile::Standard(|input: &[u8], target_energy: u64, _: Network| -> PrecompileResult {
             if 500 > target_energy {
                 return Err(Error::OutOfEnergy);
             }
@@ -26,11 +28,12 @@ pub mod add {
 }
 
 pub mod mul {
+    use revm_primitives::Network;
     use super::*;
     const ADDRESS: B176 = crate::u64_to_b176(7);
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], energy_limit: u64| -> PrecompileResult {
+        Precompile::Standard(|input: &[u8], energy_limit: u64, _: Network| -> PrecompileResult {
             if 6_000 > energy_limit {
                 return Err(Error::OutOfEnergy);
             }
@@ -40,7 +43,7 @@ pub mod mul {
 
     pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], energy_limit: u64| -> PrecompileResult {
+        Precompile::Standard(|input: &[u8], energy_limit: u64, _: Network| -> PrecompileResult {
             if 40_000 > energy_limit {
                 return Err(Error::OutOfEnergy);
             }
@@ -50,6 +53,8 @@ pub mod mul {
 }
 
 pub mod pair {
+    use revm_primitives::Network;
+
     use super::*;
     const ADDRESS: B176 = crate::u64_to_b176(8);
 
@@ -57,7 +62,7 @@ pub mod pair {
     const ISTANBUL_PAIR_BASE: u64 = 45_000;
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+        Precompile::Standard(|input: &[u8], target_energy: u64, _: Network| -> PrecompileResult {
             super::run_pair(
                 input,
                 ISTANBUL_PAIR_PER_POINT,
@@ -71,7 +76,7 @@ pub mod pair {
     const BYZANTIUM_PAIR_BASE: u64 = 100_000;
     pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+        Precompile::Standard(|input: &[u8], target_energy: u64, _: Network| -> PrecompileResult {
             super::run_pair(
                 input,
                 BYZANTIUM_PAIR_PER_POINT,

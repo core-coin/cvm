@@ -178,7 +178,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
                         context,
                         is_static: false,
                     };
-                    let (exit, energy, bytes) = self.call_inner(&mut call_input);
+                    let (exit, energy, bytes) = self.call_inner(&mut call_input, Network::from(self.network_id));
                     (exit, energy, Output::Call(bytes))
                 } else {
                     (
@@ -658,7 +658,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         }
     }
 
-    fn call_inner(&mut self, inputs: &mut CallInputs) -> (InstructionResult, Energy, Bytes) {
+    fn call_inner(&mut self, inputs: &mut CallInputs, network: Network) -> (InstructionResult, Energy, Bytes) {
         // Call the inspector
         if INSPECT {
             let (ret, energy, out) = self
@@ -736,13 +736,8 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         // Call precompiles
         let (ret, energy, out) = if let Some(precompile) = self.precompiles.get(&inputs.contract) {
             let out = match precompile {
-                Precompile::Standard(fun) => fun(inputs.input.as_ref(), inputs.energy_limit),
+                Precompile::Standard(fun) => fun(inputs.input.as_ref(), inputs.energy_limit, network),
                 Precompile::Custom(fun) => {
-                    let network = inputs.contract.as_bytes();
-                    // This is kidn of a hack, we check the prefix of the calling contract, and
-                    // according to that we know what prefix to use for the ecrecover recovered
-                    // address.
-                    let network = Network::from_prefix_numerical(network[0]);
                     fun(inputs.input.as_ref(), inputs.energy_limit, network)
                 }
             };
@@ -947,6 +942,6 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
     }
 
     fn call(&mut self, inputs: &mut CallInputs) -> (InstructionResult, Energy, Bytes) {
-        self.call_inner(inputs)
+        self.call_inner(inputs, Network::from(self.network_id))
     }
 }

@@ -6,6 +6,7 @@ use core::{
     mem::size_of,
 };
 use num::{BigUint, One, Zero};
+use revm_primitives::Network;
 
 pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
     crate::u64_to_b176(5),
@@ -14,7 +15,7 @@ pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
 
 /// See: https://eips.ethereum.org/EIPS/eip-198
 /// See: https://etherscan.io/address/0000000000000000000000000000000000000005
-fn byzantium_run(input: &[u8], energy_limit: u64) -> PrecompileResult {
+fn byzantium_run(input: &[u8], energy_limit: u64, _: Network) -> PrecompileResult {
     run_inner(input, energy_limit, 0, |a, b, c, d| {
         byzantium_energy_calc(a, b, c, d)
     })
@@ -343,7 +344,7 @@ mod tests {
         for (test, &test_energy) in TESTS.iter().zip(BYZANTIUM_ENERGY.iter()) {
             let input = hex::decode(test.input).unwrap();
 
-            let res = byzantium_run(&input, 100_000_000).unwrap();
+            let res = byzantium_run(&input, 100_000_000, Network::Mainnet).unwrap();
             let expected = hex::decode(test.expected).unwrap();
             assert_eq!(
                 res.0, test_energy,
