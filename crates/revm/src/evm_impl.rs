@@ -739,7 +739,10 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
                 Precompile::Standard(fun) => fun(inputs.input.as_ref(), inputs.energy_limit),
                 Precompile::Custom(fun) => {
                     let network = inputs.contract.as_bytes();
-                    let network = Network::from(network[0] as u64);
+                    // This is kidn of a hack, we check the prefix of the calling contract, and
+                    // according to that we know what prefix to use for the ecrecover recovered
+                    // address.
+                    let network = Network::from_prefix_numerical(network[0]);
                     fun(inputs.input.as_ref(), inputs.energy_limit, network)
                 }
             };

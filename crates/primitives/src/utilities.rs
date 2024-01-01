@@ -32,6 +32,19 @@ impl Network {
             Network::Private(n) => U256::from(*n),
         }
     }
+
+    pub fn from_prefix_numerical(prefix: u8) -> Self {
+        match prefix {
+            // CB
+            203 => Self::Mainnet,
+            // AB
+            171 => Self::Devin,
+            // Here we don't really care about the networkId because this function is only used in
+            // ecrecover, and we only need to know what should we prefix to the address from
+            // ecrecover
+            _ => Self::Private(100),
+        }
+    }
 }
 
 impl From<u64> for Network {
