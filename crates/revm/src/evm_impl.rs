@@ -14,6 +14,7 @@ use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector
 use alloc::vec::Vec;
 use core::{cmp::min, marker::PhantomData};
 use revm_interpreter::energy::Energy;
+use revm_interpreter::primitives::Network;
 use revm_interpreter::MAX_CODE_SIZE;
 use revm_precompile::{Precompile, Precompiles};
 use std::cmp::Ordering;
@@ -736,7 +737,11 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         let (ret, energy, out) = if let Some(precompile) = self.precompiles.get(&inputs.contract) {
             let out = match precompile {
                 Precompile::Standard(fun) => fun(inputs.input.as_ref(), inputs.energy_limit),
-                Precompile::Custom(fun) => fun(inputs.input.as_ref(), inputs.energy_limit),
+                Precompile::Custom(fun) => {
+                    let network = inputs.contract.as_bytes();
+                    let network = Network::from(network[0] as u64);
+                    fun(inputs.input.as_ref(), inputs.energy_limit, network)
+                }
             };
             match out {
                 Ok((energy_used, data)) => {

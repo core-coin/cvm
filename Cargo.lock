@@ -786,7 +786,7 @@ checksum = "a08173bc88b7955d1b3145aa561539096c421ac8debde8cbc3612ec635fee29b"
 [[package]]
 name = "libgoldilocks"
 version = "0.1.0"
-source = "git+https://github.com/core-coin/ed448-rs?branch=david/add_try_from_for_signature#d27fde3a32814f43f58f7e2202173dec90784e6c"
+source = "git+https://github.com/core-coin/ed448-rs#1e7c8738732a104c63480880b597fd850b2fafa4"
 dependencies = [
  "hex",
  "rand",

@@ -17,7 +17,6 @@ pub type B176 = [u8; 22];
 pub type B160 = [u8; 20];
 pub type B256 = [u8; 32];
 
-
 pub fn calc_linear_cost_u32(len: usize, base: u64, word: u64) -> u64 {
     (len as u64 + 32 - 1) / 32 * word + base
 }
