@@ -1,4 +1,4 @@
-use crate::{StandardPrecompileFn, Error, Precompile, PrecompileAddress, PrecompileResult};
+use crate::{Error, Precompile, PrecompileAddress, PrecompileResult, StandardPrecompileFn};
 use revm_primitives::Network;
 pub const ECRECOVER: PrecompileAddress = PrecompileAddress(
     crate::u64_to_b176(1),

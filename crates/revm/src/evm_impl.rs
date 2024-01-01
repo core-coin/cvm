@@ -178,7 +178,8 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
                         context,
                         is_static: false,
                     };
-                    let (exit, energy, bytes) = self.call_inner(&mut call_input, Network::from(self.network_id));
+                    let (exit, energy, bytes) =
+                        self.call_inner(&mut call_input, Network::from(self.network_id));
                     (exit, energy, Output::Call(bytes))
                 } else {
                     (
@@ -658,7 +659,11 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         }
     }
 
-    fn call_inner(&mut self, inputs: &mut CallInputs, network: Network) -> (InstructionResult, Energy, Bytes) {
+    fn call_inner(
+        &mut self,
+        inputs: &mut CallInputs,
+        network: Network,
+    ) -> (InstructionResult, Energy, Bytes) {
         // Call the inspector
         if INSPECT {
             let (ret, energy, out) = self
@@ -736,10 +741,10 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         // Call precompiles
         let (ret, energy, out) = if let Some(precompile) = self.precompiles.get(&inputs.contract) {
             let out = match precompile {
-                Precompile::Standard(fun) => fun(inputs.input.as_ref(), inputs.energy_limit, network),
-                Precompile::Custom(fun) => {
+                Precompile::Standard(fun) => {
                     fun(inputs.input.as_ref(), inputs.energy_limit, network)
                 }
+                Precompile::Custom(fun) => fun(inputs.input.as_ref(), inputs.energy_limit, network),
             };
             match out {
                 Ok((energy_used, data)) => {
