@@ -83,7 +83,7 @@ pub fn create2_address(caller: B176, code_hash: B256, salt: U256, network_id: u6
     to_ican(&addr, &network)
 }
 
-fn to_ican(addr: &B160, network: &Network) -> B176 {
+pub fn to_ican(addr: &B160, network: &Network) -> B176 {
     // Get the prefix str
     let prefix = match network {
         Network::Mainnet => MAINNET,

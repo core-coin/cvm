@@ -1,10 +1,11 @@
 use alloc::vec::Vec;
+use crate::Network;
 
 /// A precompile operation result.
 pub type PrecompileResult = Result<(u64, Vec<u8>), PrecompileError>;
 
 pub type StandardPrecompileFn = fn(&[u8], u64) -> PrecompileResult;
-pub type CustomPrecompileFn = fn(&[u8], u64) -> PrecompileResult;
+pub type CustomPrecompileFn = fn(&[u8], u64, Network) -> PrecompileResult;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PrecompileError {
