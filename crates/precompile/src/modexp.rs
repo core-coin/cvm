@@ -1,7 +1,6 @@
 use crate::{
     primitives::U256, Error, Precompile, PrecompileAddress, PrecompileResult, StandardPrecompileFn,
 };
-use alloc::vec::Vec;
 use core::{
     cmp::{max, min, Ordering},
     mem::size_of,

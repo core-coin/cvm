@@ -1,5 +1,4 @@
 use crate::{primitives::U256, Error, Precompile, PrecompileAddress, PrecompileResult, B176};
-use alloc::vec::Vec;
 
 pub mod add {
     use super::*;
