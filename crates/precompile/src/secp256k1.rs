@@ -33,7 +33,6 @@ mod secp256k1 {
     }
 }
 
-
 fn ec_recover_run(i: &[u8], target_energy: u64, network: Network) -> PrecompileResult {
     use core::cmp::min;
 
