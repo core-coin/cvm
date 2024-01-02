@@ -3,6 +3,7 @@ pub const ECRECOVER: PrecompileAddress = PrecompileAddress(
     crate::u64_to_b176(1),
     Precompile::Custom(ec_recover_run as StandardPrecompileFn),
 );
+
 use crate::B256;
 use libgoldilocks::goldilocks::ed448_verify_with_error;
 use revm_primitives::{to_ican, Network, B160, B256 as rB256};
@@ -38,17 +39,17 @@ fn ec_recover_run(i: &[u8], target_energy: u64, network: Network) -> PrecompileR
         return Err(Error::OutOfEnergy);
     }
 
-    //                   msg+sig
-    let mut input = [0u8; 32 + 171];
+    // 3 * 32 because there is hash, offset of bytes, length of bytes, then 171 bytes of actual
+    // signature
+    let mut input = [0u8; 3 * 32 + 171];
 
     // Copy the entire slice into input
-    input[..min(i.len(), 171 + 32)].copy_from_slice(&i[..min(i.len(), 171 + 32)]);
+    input[..min(i.len(), 3 * 32 + 171)].copy_from_slice(&i[..min(i.len(), 3 * 32 + 171)]);
 
     let mut msg = [0u8; 32];
     let mut sig = [0u8; 171];
     msg[0..32].copy_from_slice(&input[0..32]);
-    sig[0..171].copy_from_slice(&input[32..171 + 32]);
-
+    sig[0..171].copy_from_slice(&input[96..32 * 3 + 171]);
     let out = ecrecover(&sig, &msg, network)
         .map(Vec::from)
         .unwrap_or_default();
@@ -85,7 +86,7 @@ mod tests {
 
     #[test]
     fn test_ecrecover() {
-        let sig = hex::decode("f092a4af1f2103fe7be067df44370097c444f3bf877783ba56f21cf70ba365a3611d178b128095022653965eb0ed3bc8bbea8e7891b5a121a102a5b29bb895770d204354dbbc67c5567186f92cdb58a601397dfe0022e0ce002c1333b6829c37c732fb909501f719df200ceaaa0e0a1533dc22e4c9c999406c071fee2858bc7c76c66d113ff1ac739564d465cd541b0d1e003761457fcdd53dba3dea5848c43aa54fe468284319f032945a3acb9bd4cd0fa7b7c901d978e9acd9eca43fa5b3c32b648c33dcc3f3169e8080").unwrap();
+        let sig = hex::decode("f092a4af1f2103fe7be067df44370097c444f3bf877783ba56f21cf70ba365a300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000611d178b128095022653965eb0ed3bc8bbea8e7891b5a121a102a5b29bb895770d204354dbbc67c5567186f92cdb58a601397dfe0022e0ce002c1333b6829c37c732fb909501f719df200ceaaa0e0a1533dc22e4c9c999406c071fee2858bc7c76c66d113ff1ac739564d465cd541b0d1e003761457fcdd53dba3dea5848c43aa54fe468284319f032945a3acb9bd4cd0fa7b7c901d978e9acd9eca43fa5b3c32b648c33dcc3f3169e8080").unwrap();
         let recovered = ec_recover_run(&sig, 5000, Network::Mainnet).unwrap().1;
         let expected: [u8; 32] =
             hex::decode("00000000000000000000cb58fc37a3b370a1f22e2fe2f819c210895e098845ed")
