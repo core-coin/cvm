@@ -1,36 +1,32 @@
 use crate::{Error, Precompile, PrecompileAddress, PrecompileResult, StandardPrecompileFn};
-use revm_primitives::Network;
 pub const ECRECOVER: PrecompileAddress = PrecompileAddress(
     crate::u64_to_b176(1),
     Precompile::Custom(ec_recover_run as StandardPrecompileFn),
 );
+use crate::B256;
+use libgoldilocks::goldilocks::ed448_verify_with_error;
+use revm_primitives::{to_ican, Network, B160, B256 as rB256};
+use sha3::{Digest, Sha3_256};
 
-mod secp256k1 {
-    use crate::B256;
-    use libgoldilocks::goldilocks::ed448_verify_with_error;
-    use revm_primitives::{to_ican, Network, B160, B256 as rB256};
-    use sha3::{Digest, Sha3_256};
+pub fn ecrecover(
+    sig: &[u8; 171],
+    msg: &B256,
+    network: Network,
+) -> Result<B256, libgoldilocks::errors::LibgoldilockErrors> {
+    let mut sig_bytes = [0u8; 114];
+    let mut pub_bytes = [0u8; 57];
+    sig_bytes.copy_from_slice(&sig[0..114]);
+    pub_bytes.copy_from_slice(&sig[114..171]);
 
-    pub fn ecrecover(
-        sig: &[u8; 171],
-        msg: &B256,
-        network: Network,
-    ) -> Result<B256, libgoldilocks::errors::LibgoldilockErrors> {
-        let mut sig_bytes = [0u8; 114];
-        let mut pub_bytes = [0u8; 57];
-        sig_bytes.copy_from_slice(&sig[0..114]);
-        pub_bytes.copy_from_slice(&sig[114..171]);
+    // Not sure whether this returns address(0) on invliad message
+    ed448_verify_with_error(&pub_bytes, &sig_bytes, msg.as_ref())?;
 
-        // Not sure whether this returns address(0) on invliad message
-        ed448_verify_with_error(&pub_bytes, &sig_bytes, msg.as_ref())?;
-
-        let hash = Sha3_256::digest(pub_bytes);
-        let hash: B256 = hash[..].try_into().unwrap();
-        let addr = B160::from_slice(&hash[12..]);
-        let addr = to_ican(&addr, &network);
-        let addr = rB256::from(addr);
-        Ok(*addr)
-    }
+    let hash = Sha3_256::digest(pub_bytes);
+    let hash: B256 = hash[..].try_into().unwrap();
+    let addr = B160::from_slice(&hash[12..]);
+    let addr = to_ican(&addr, &network);
+    let addr = rB256::from(addr);
+    Ok(*addr)
 }
 
 fn ec_recover_run(i: &[u8], target_energy: u64, network: Network) -> PrecompileResult {
@@ -53,7 +49,7 @@ fn ec_recover_run(i: &[u8], target_energy: u64, network: Network) -> PrecompileR
     msg[0..32].copy_from_slice(&input[0..32]);
     sig[0..171].copy_from_slice(&input[32..171 + 32]);
 
-    let out = secp256k1::ecrecover(&sig, &msg, network)
+    let out = ecrecover(&sig, &msg, network)
         .map(Vec::from)
         .unwrap_or_default();
 
@@ -64,7 +60,7 @@ fn ec_recover_run(i: &[u8], target_energy: u64, network: Network) -> PrecompileR
 mod tests {
     // use super::*;
     use crate::{
-        secp256k1::{ec_recover_run, secp256k1::ecrecover},
+        secp256k1::{ec_recover_run, ecrecover},
         B256,
     };
     use hex;
