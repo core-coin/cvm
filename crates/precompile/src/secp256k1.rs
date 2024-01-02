@@ -44,15 +44,15 @@ fn ec_recover_run(i: &[u8], target_energy: u64, network: Network) -> PrecompileR
 
     // 3 * 32 because there is hash, offset of bytes, length of bytes, then 171 bytes of actual
     // signature
-    let mut input = [0u8; 3*32 + 171];
+    let mut input = [0u8; 3 * 32 + 171];
 
     // Copy the entire slice into input
-    input[..min(i.len(), 3*32 + 171)].copy_from_slice(&i[..min(i.len(), 3*32 + 171)]);
+    input[..min(i.len(), 3 * 32 + 171)].copy_from_slice(&i[..min(i.len(), 3 * 32 + 171)]);
 
     let mut msg = [0u8; 32];
     let mut sig = [0u8; 171];
     msg[0..32].copy_from_slice(&input[0..32]);
-    sig[0..171].copy_from_slice(&input[96..32*3+171]);
+    sig[0..171].copy_from_slice(&input[96..32 * 3 + 171]);
     let out = secp256k1::ecrecover(&sig, &msg, network)
         .map(Vec::from)
         .unwrap_or_default();
