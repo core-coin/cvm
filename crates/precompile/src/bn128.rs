@@ -1,68 +1,56 @@
 use crate::{primitives::U256, Error, Precompile, PrecompileAddress, PrecompileResult, B176};
+use alloc::vec::Vec;
 
 pub mod add {
-    use revm_primitives::Network;
-
     use super::*;
     const ADDRESS: B176 = crate::u64_to_b176(6);
 
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(
-            |input: &[u8], target_energy: u64, _: Network| -> PrecompileResult {
-                if 150 > target_energy {
-                    return Err(Error::OutOfEnergy);
-                }
-                Ok((150, super::run_add(input)?))
-            },
-        ),
+        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+            if 150 > target_energy {
+                return Err(Error::OutOfEnergy);
+            }
+            Ok((150, super::run_add(input)?))
+        }),
     );
 
     pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(
-            |input: &[u8], target_energy: u64, _: Network| -> PrecompileResult {
-                if 500 > target_energy {
-                    return Err(Error::OutOfEnergy);
-                }
-                Ok((500, super::run_add(input)?))
-            },
-        ),
+        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+            if 500 > target_energy {
+                return Err(Error::OutOfEnergy);
+            }
+            Ok((500, super::run_add(input)?))
+        }),
     );
 }
 
 pub mod mul {
     use super::*;
-    use revm_primitives::Network;
     const ADDRESS: B176 = crate::u64_to_b176(7);
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(
-            |input: &[u8], energy_limit: u64, _: Network| -> PrecompileResult {
-                if 6_000 > energy_limit {
-                    return Err(Error::OutOfEnergy);
-                }
-                Ok((6_000, super::run_mul(input)?))
-            },
-        ),
+        Precompile::Standard(|input: &[u8], energy_limit: u64| -> PrecompileResult {
+            if 6_000 > energy_limit {
+                return Err(Error::OutOfEnergy);
+            }
+            Ok((6_000, super::run_mul(input)?))
+        }),
     );
 
     pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(
-            |input: &[u8], energy_limit: u64, _: Network| -> PrecompileResult {
-                if 40_000 > energy_limit {
-                    return Err(Error::OutOfEnergy);
-                }
-                Ok((40_000, super::run_mul(input)?))
-            },
-        ),
+        Precompile::Standard(|input: &[u8], energy_limit: u64| -> PrecompileResult {
+            if 40_000 > energy_limit {
+                return Err(Error::OutOfEnergy);
+            }
+            Ok((40_000, super::run_mul(input)?))
+        }),
     );
 }
 
 pub mod pair {
-    use revm_primitives::Network;
-
     use super::*;
     const ADDRESS: B176 = crate::u64_to_b176(8);
 
@@ -70,32 +58,28 @@ pub mod pair {
     const ISTANBUL_PAIR_BASE: u64 = 45_000;
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(
-            |input: &[u8], target_energy: u64, _: Network| -> PrecompileResult {
-                super::run_pair(
-                    input,
-                    ISTANBUL_PAIR_PER_POINT,
-                    ISTANBUL_PAIR_BASE,
-                    target_energy,
-                )
-            },
-        ),
+        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+            super::run_pair(
+                input,
+                ISTANBUL_PAIR_PER_POINT,
+                ISTANBUL_PAIR_BASE,
+                target_energy,
+            )
+        }),
     );
 
     const BYZANTIUM_PAIR_PER_POINT: u64 = 80_000;
     const BYZANTIUM_PAIR_BASE: u64 = 100_000;
     pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
         ADDRESS,
-        Precompile::Standard(
-            |input: &[u8], target_energy: u64, _: Network| -> PrecompileResult {
-                super::run_pair(
-                    input,
-                    BYZANTIUM_PAIR_PER_POINT,
-                    BYZANTIUM_PAIR_BASE,
-                    target_energy,
-                )
-            },
-        ),
+        Precompile::Standard(|input: &[u8], target_energy: u64| -> PrecompileResult {
+            super::run_pair(
+                input,
+                BYZANTIUM_PAIR_PER_POINT,
+                BYZANTIUM_PAIR_BASE,
+                target_energy,
+            )
+        }),
     );
 }
 

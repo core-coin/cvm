@@ -1,6 +1,5 @@
 use super::calc_linear_cost_u32;
 use crate::{Error, Precompile, PrecompileAddress, PrecompileResult, StandardPrecompileFn};
-use revm_primitives::Network;
 use sha2::*;
 
 pub const SHA256: PrecompileAddress = PrecompileAddress(
@@ -15,7 +14,7 @@ pub const RIPEMD160: PrecompileAddress = PrecompileAddress(
 /// See: https://ethereum.github.io/yellowpaper/paper.pdf
 /// See: https://docs.soliditylang.org/en/develop/units-and-global-variables.html#mathematical-and-cryptographic-functions
 /// See: https://etherscan.io/address/0000000000000000000000000000000000000002
-fn sha256_run(input: &[u8], energy_limit: u64, _: Network) -> PrecompileResult {
+fn sha256_run(input: &[u8], energy_limit: u64) -> PrecompileResult {
     let cost = calc_linear_cost_u32(input.len(), 60, 12);
     if cost > energy_limit {
         Err(Error::OutOfEnergy)
@@ -28,7 +27,7 @@ fn sha256_run(input: &[u8], energy_limit: u64, _: Network) -> PrecompileResult {
 /// See: https://ethereum.github.io/yellowpaper/paper.pdf
 /// See: https://docs.soliditylang.org/en/develop/units-and-global-variables.html#mathematical-and-cryptographic-functions
 /// See: https://etherscan.io/address/0000000000000000000000000000000000000003
-fn ripemd160_run(input: &[u8], energy_limit: u64, _: Network) -> PrecompileResult {
+fn ripemd160_run(input: &[u8], energy_limit: u64) -> PrecompileResult {
     let energy_used = calc_linear_cost_u32(input.len(), 600, 120);
     if energy_used > energy_limit {
         Err(Error::OutOfEnergy)
