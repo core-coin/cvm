@@ -5,34 +5,6 @@ pub const ECRECOVER: PrecompileAddress = PrecompileAddress(
     Precompile::Custom(ec_recover_run as StandardPrecompileFn),
 );
 
-#[cfg(not(feature = "secp256k1"))]
-#[allow(clippy::module_inception)]
-mod secp256k1 {
-    use core::convert::TryFrom;
-    use k256::{
-        ecdsa::{recoverable, Error},
-        elliptic_curve::sec1::ToEncodedPoint,
-        PublicKey as K256PublicKey,
-    };
-    use sha3::{Digest, Keccak256};
-
-    use crate::B256;
-
-    pub fn ecrecover(sig: &[u8; 65], msg: &B256) -> Result<B256, Error> {
-        let sig = recoverable::Signature::try_from(sig.as_ref())?;
-        let verify_key = sig.recover_verifying_key_from_digest_bytes(msg.into())?;
-        let public_key = K256PublicKey::from(&verify_key);
-        let public_key = public_key.to_encoded_point(/* compress = */ false);
-        let public_key = public_key.as_bytes();
-        let hash = Keccak256::digest(&public_key[1..]);
-        let mut hash: B256 = hash[..].try_into().unwrap();
-        hash.iter_mut().take(12).for_each(|i| *i = 0);
-        Ok(hash)
-    }
-}
-
-#[cfg(feature = "secp256k1")]
-#[allow(clippy::module_inception)]
 mod secp256k1 {
     use crate::B256;
     use libgoldilocks::goldilocks::ed448_verify_with_error;
@@ -60,6 +32,7 @@ mod secp256k1 {
         Ok(*addr)
     }
 }
+
 
 fn ec_recover_run(i: &[u8], target_energy: u64, network: Network) -> PrecompileResult {
     use core::cmp::min;
