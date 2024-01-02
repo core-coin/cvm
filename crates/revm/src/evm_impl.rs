@@ -14,6 +14,7 @@ use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector
 use alloc::vec::Vec;
 use core::{cmp::min, marker::PhantomData};
 use revm_interpreter::energy::Energy;
+use revm_interpreter::primitives::Network;
 use revm_interpreter::MAX_CODE_SIZE;
 use revm_precompile::{Precompile, Precompiles};
 use std::cmp::Ordering;
@@ -177,7 +178,8 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
                         context,
                         is_static: false,
                     };
-                    let (exit, energy, bytes) = self.call_inner(&mut call_input);
+                    let (exit, energy, bytes) =
+                        self.call_inner(&mut call_input, Network::from(self.network_id));
                     (exit, energy, Output::Call(bytes))
                 } else {
                     (
@@ -657,7 +659,11 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         }
     }
 
-    fn call_inner(&mut self, inputs: &mut CallInputs) -> (InstructionResult, Energy, Bytes) {
+    fn call_inner(
+        &mut self,
+        inputs: &mut CallInputs,
+        network: Network,
+    ) -> (InstructionResult, Energy, Bytes) {
         // Call the inspector
         if INSPECT {
             let (ret, energy, out) = self
@@ -735,8 +741,10 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         // Call precompiles
         let (ret, energy, out) = if let Some(precompile) = self.precompiles.get(&inputs.contract) {
             let out = match precompile {
-                Precompile::Standard(fun) => fun(inputs.input.as_ref(), inputs.energy_limit),
-                Precompile::Custom(fun) => fun(inputs.input.as_ref(), inputs.energy_limit),
+                Precompile::Standard(fun) => {
+                    fun(inputs.input.as_ref(), inputs.energy_limit, network)
+                }
+                Precompile::Custom(fun) => fun(inputs.input.as_ref(), inputs.energy_limit, network),
             };
             match out {
                 Ok((energy_used, data)) => {
@@ -939,6 +947,6 @@ impl<'a, GSPEC: Spec, DB: Database + 'a, const INSPECT: bool> Host
     }
 
     fn call(&mut self, inputs: &mut CallInputs) -> (InstructionResult, Energy, Bytes) {
-        self.call_inner(inputs)
+        self.call_inner(inputs, Network::from(self.network_id))
     }
 }

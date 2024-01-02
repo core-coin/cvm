@@ -1,3 +1,5 @@
+use revm_primitives::Network;
+
 use crate::{Error, PrecompileAddress, StandardPrecompileFn};
 use crate::{Precompile, PrecompileResult};
 use core::convert::TryInto;
@@ -13,7 +15,7 @@ pub const FUN: PrecompileAddress = PrecompileAddress(
 /// reference: https://eips.ethereum.org/EIPS/eip-152
 /// input format:
 /// [4 bytes for rounds][64 bytes for h][128 bytes for m][8 bytes for t_0][8 bytes for t_1][1 byte for f]
-fn run(input: &[u8], energy_limit: u64) -> PrecompileResult {
+fn run(input: &[u8], energy_limit: u64, _: Network) -> PrecompileResult {
     if input.len() != INPUT_LENGTH {
         return Err(Error::Blake2WrongLength);
     }
