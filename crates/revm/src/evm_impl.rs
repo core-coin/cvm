@@ -467,10 +467,15 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
         // Create address
         let code_hash = sha3(&inputs.init_code);
         let created_address = match inputs.scheme {
-            CreateScheme::Create => create_address(inputs.caller, old_nonce),
-            CreateScheme::Create2 { salt } => {
-                create2_address(inputs.caller, code_hash, salt, self.network_id)
+            CreateScheme::Create => {
+                create_address(inputs.caller, old_nonce, Network::from(self.network_id))
             }
+            CreateScheme::Create2 { salt } => create2_address(
+                inputs.caller,
+                code_hash,
+                salt,
+                Network::from(self.network_id),
+            ),
         };
         let ret = Some(created_address);
 
