@@ -1,5 +1,5 @@
 [package]
-name = "revm-test"
+name = "cvm-test"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 bytes = "1.4"
 hex = "0.4"
-revm = { path = "../../crates/revm", version = "3.0.0" }
+cvm = { path = "../../crates/cvm", version = "3.0.0" }
 microbench = "0.5"
 
 [[bin]]

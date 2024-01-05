@@ -1,11 +1,11 @@
 [package]
 authors = ["Dragan Rakita <dragan0rakita@gmail.com>"]
-description = "REVM primitives"
+description = "CVM primitives"
 edition = "2021"
-keywords = ["no_std", "ethereum", "evm", "revm", "types"]
+keywords = ["no_std", "ethereum", "cvm", "types"]
 license = "MIT"
-name = "revm-primitives"
-repository = "https://github.com/bluealloy/revm"
+name = "cvm-primitives"
+repository = "https://github.com/bluealloy/cvm"
 version = "1.0.0"
 readme = "../../README.md"
 

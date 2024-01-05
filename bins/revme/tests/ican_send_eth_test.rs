@@ -1,6 +1,6 @@
-use revm::primitives::AccountInfo;
-use revm::{db::InMemoryDB, primitives::TransactTo};
-use revm::{
+use cvm::primitives::AccountInfo;
+use cvm::{db::InMemoryDB, primitives::TransactTo};
+use cvm::{
     primitives::{B176, U256},
     EVM,
 };
@@ -15,30 +15,30 @@ fn test_send_ican() {
     };
 
     // initialise an empty (default) EVM
-    let mut evm = EVM::new();
+    let mut cvm = EVM::new();
 
     // initialise the database
-    evm.database(InMemoryDB::default());
+    cvm.database(InMemoryDB::default());
 
     // Assign the balance to the zero address
-    evm.db.as_mut().unwrap().insert_account_info(
+    cvm.db.as_mut().unwrap().insert_account_info(
         B176::from_str("0x00000000000000000000000000000000000000000000").unwrap(),
         account,
     );
 
     // Caller is the 0 address
-    evm.env.tx.caller = B176::from_str("0x00000000000000000000000000000000000000000000").unwrap();
+    cvm.env.tx.caller = B176::from_str("0x00000000000000000000000000000000000000000000").unwrap();
     // Account we want to transact with
-    evm.env.tx.transact_to =
+    cvm.env.tx.transact_to =
         TransactTo::Call(B176::from_str("0x00000000000000000000000000000000000000000002").unwrap());
     // transaction value in wei
-    evm.env.tx.value = U256::from_str("100000000").unwrap();
+    cvm.env.tx.value = U256::from_str("100000000").unwrap();
 
     // execute transaction and write it to the db
-    let _ = evm.transact_commit().unwrap();
+    let _ = cvm.transact_commit().unwrap();
 
     // Get the balance of the 0x02 account
-    let balance = evm
+    let balance = cvm
         .db
         .unwrap()
         .accounts

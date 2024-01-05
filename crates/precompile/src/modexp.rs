@@ -5,8 +5,8 @@ use core::{
     cmp::{max, min, Ordering},
     mem::size_of,
 };
+use cvm_primitives::Network;
 use num::{BigUint, One, Zero};
-use revm_primitives::Network;
 
 pub const BYZANTIUM: PrecompileAddress = PrecompileAddress(
     crate::u64_to_b176(5),

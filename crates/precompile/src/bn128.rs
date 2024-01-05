@@ -1,7 +1,7 @@
 use crate::{primitives::U256, Error, Precompile, PrecompileAddress, PrecompileResult, B176};
 
 pub mod add {
-    use revm_primitives::Network;
+    use cvm_primitives::Network;
 
     use super::*;
     const ADDRESS: B176 = crate::u64_to_b176(6);
@@ -33,7 +33,7 @@ pub mod add {
 
 pub mod mul {
     use super::*;
-    use revm_primitives::Network;
+    use cvm_primitives::Network;
     const ADDRESS: B176 = crate::u64_to_b176(7);
     pub const ISTANBUL: PrecompileAddress = PrecompileAddress(
         ADDRESS,
@@ -61,7 +61,7 @@ pub mod mul {
 }
 
 pub mod pair {
-    use revm_primitives::Network;
+    use cvm_primitives::Network;
 
     use super::*;
     const ADDRESS: B176 = crate::u64_to_b176(8);

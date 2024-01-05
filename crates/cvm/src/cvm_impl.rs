@@ -13,10 +13,10 @@ use crate::primitives::{
 use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector};
 use alloc::vec::Vec;
 use core::{cmp::min, marker::PhantomData};
-use revm_interpreter::energy::Energy;
-use revm_interpreter::primitives::Network;
-use revm_interpreter::MAX_CODE_SIZE;
-use revm_precompile::{Precompile, Precompiles};
+use cvm_interpreter::energy::Energy;
+use cvm_interpreter::primitives::Network;
+use cvm_interpreter::MAX_CODE_SIZE;
+use cvm_precompile::{Precompile, Precompiles};
 use std::cmp::Ordering;
 
 pub struct EVMData<'a, DB: Database> {

@@ -9,8 +9,8 @@ use std::{
 
 use indicatif::ProgressBar;
 
-use revm::inspectors::TracerEip3155;
-use revm::{
+use cvm::inspectors::TracerEip3155;
+use cvm::{
     db::AccountState,
     interpreter::CreateScheme,
     primitives::{Bytecode, Env, ExecutionResult, SpecId, TransactTo, B176, B256, U256},
@@ -22,8 +22,8 @@ use super::{
     merkle_trie::{log_rlp_hash, state_merkle_trie_root},
     models::{SpecName, TestSuit},
 };
+use cvm::primitives::sha3;
 use hex_literal::hex;
-use revm::primitives::sha3;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -153,9 +153,9 @@ pub fn execute_test_suit(
 
     for (name, unit) in suit.0.into_iter() {
         // Create database and insert cache
-        let mut database = revm::InMemoryDB::default();
+        let mut database = cvm::InMemoryDB::default();
         for (address, info) in unit.pre.iter() {
-            let acc_info = revm::primitives::AccountInfo {
+            let acc_info = cvm::primitives::AccountInfo {
                 balance: info.balance,
                 code_hash: sha3(&info.code), // try with dummy hash.
                 code: Some(Bytecode::new_raw(info.code.clone())),
@@ -225,27 +225,27 @@ pub fn execute_test_suit(
                 env.tx.transact_to = to;
 
                 let mut database_cloned = database.clone();
-                let mut evm = revm::new();
-                evm.database(&mut database_cloned);
-                evm.env = env.clone();
+                let mut cvm = cvm::new();
+                cvm.database(&mut database_cloned);
+                cvm.env = env.clone();
                 // do the deed
 
                 let timer = Instant::now();
 
                 let exec_result = if trace {
-                    evm.inspect_commit(TracerEip3155::new(Box::new(stdout()), false, false))
+                    cvm.inspect_commit(TracerEip3155::new(Box::new(stdout()), false, false))
                 } else {
-                    evm.transact_commit()
+                    cvm.transact_commit()
                 };
                 let timer = timer.elapsed();
 
                 *elapsed.lock().unwrap() += timer;
 
                 let is_legacy = !SpecId::enabled(
-                    evm.env.cfg.spec_id,
-                    revm::primitives::SpecId::SPURIOUS_DRAGON,
+                    cvm.env.cfg.spec_id,
+                    cvm::primitives::SpecId::SPURIOUS_DRAGON,
                 );
-                let db = evm.db().unwrap();
+                let db = cvm.db().unwrap();
                 let state_root = state_merkle_trie_root(
                     db.accounts
                         .iter()
@@ -268,10 +268,10 @@ pub fn execute_test_suit(
                         test.hash, test.logs
                     );
                     let mut database_cloned = database.clone();
-                    evm.database(&mut database_cloned);
+                    cvm.database(&mut database_cloned);
                     let _ =
-                        evm.inspect_commit(TracerEip3155::new(Box::new(stdout()), false, false));
-                    let db = evm.db().unwrap();
+                        cvm.inspect_commit(TracerEip3155::new(Box::new(stdout()), false, false));
+                    let db = cvm.db().unwrap();
                     println!("{path:?} UNIT_TEST:{name}\n");
                     match &exec_result {
                         Ok(ExecutionResult::Success {

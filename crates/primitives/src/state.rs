@@ -92,7 +92,7 @@ pub struct AccountInfo {
     /// code hash,
     pub code_hash: B256,
     /// code: if None, `code_by_hash` will be used to fetch it if code needs to be loaded from
-    /// inside of revm.
+    /// inside of cvm.
     pub code: Option<Bytecode>,
 }
 

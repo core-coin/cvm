@@ -1,17 +1,16 @@
 use bytes::Bytes;
-use hash_db::Hasher;
-use plain_hasher::PlainHasher;
-use primitive_types::H256;
-use revm::{
+use cvm::{
     db::DbAccount,
     primitives::{sha3, Log, B176, B256, U256},
 };
+use hash_db::Hasher;
+use plain_hasher::PlainHasher;
+use primitive_types::H256;
 use rlp::RlpStream;
 use sha3::{Digest, Keccak256};
 use triehash::sec_trie_root;
 
 pub fn log_rlp_hash(logs: Vec<Log>) -> B256 {
-    //https://github.com/ethereum/go-ethereum/blob/356bbe343a30789e77bb38f25983c8f2f2bfbb47/cmd/evm/internal/t8ntool/execution.go#L255
     let mut stream = RlpStream::new();
     stream.begin_unbounded_list();
     for log in logs {

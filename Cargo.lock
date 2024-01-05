@@ -370,6 +370,106 @@ dependencies = [
 ]
 
 [[package]]
+name = "cvm"
+version = "3.0.0"
+dependencies = [
+ "auto_impl",
+ "cvm-interpreter",
+ "cvm-precompile",
+ "hex-literal",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "cvm-interpreter"
+version = "1.0.0"
+dependencies = [
+ "arbitrary",
+ "cvm-primitives",
+ "derive_more",
+ "enumn",
+ "proptest",
+ "proptest-derive",
+ "serde",
+ "sha3",
+]
+
+[[package]]
+name = "cvm-precompile"
+version = "2.0.0"
+dependencies = [
+ "cvm-primitives",
+ "hex",
+ "k256",
+ "libgoldilocks",
+ "num",
+ "once_cell",
+ "ripemd",
+ "secp256k1",
+ "sha2",
+ "sha3",
+ "substrate-bn",
+]
+
+[[package]]
+name = "cvm-primitives"
+version = "1.0.0"
+dependencies = [
+ "arbitrary",
+ "auto_impl",
+ "bitvec",
+ "bytes",
+ "derive_more",
+ "enumn",
+ "fixed-hash 0.8.0 (git+https://github.com/core-coin/core-common.git)",
+ "hashbrown 0.13.2",
+ "hex",
+ "hex-literal",
+ "primitive-types 0.12.1",
+ "proptest",
+ "proptest-derive",
+ "rlp 0.5.2 (git+https://github.com/core-coin/core-common.git)",
+ "ruint",
+ "serde",
+ "sha3",
+]
+
+[[package]]
+name = "cvm-test"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "cvm",
+ "hex",
+ "microbench",
+]
+
+[[package]]
+name = "cvme"
+version = "0.2.0"
+dependencies = [
+ "bytes",
+ "cvm",
+ "hash-db",
+ "hashbrown 0.13.2",
+ "hex",
+ "hex-literal",
+ "indicatif",
+ "plain_hasher",
+ "primitive-types 0.12.2",
+ "rlp 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ruint",
+ "serde",
+ "serde_json",
+ "sha3",
+ "structopt",
+ "thiserror",
+ "triehash",
+ "walkdir",
+]
+
+[[package]]
 name = "der"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1157,106 +1257,6 @@ name = "regex-syntax"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
-
-[[package]]
-name = "revm"
-version = "3.0.0"
-dependencies = [
- "auto_impl",
- "hex-literal",
- "revm-interpreter",
- "revm-precompile",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "revm-interpreter"
-version = "1.0.0"
-dependencies = [
- "arbitrary",
- "derive_more",
- "enumn",
- "proptest",
- "proptest-derive",
- "revm-primitives",
- "serde",
- "sha3",
-]
-
-[[package]]
-name = "revm-precompile"
-version = "2.0.0"
-dependencies = [
- "hex",
- "k256",
- "libgoldilocks",
- "num",
- "once_cell",
- "revm-primitives",
- "ripemd",
- "secp256k1",
- "sha2",
- "sha3",
- "substrate-bn",
-]
-
-[[package]]
-name = "revm-primitives"
-version = "1.0.0"
-dependencies = [
- "arbitrary",
- "auto_impl",
- "bitvec",
- "bytes",
- "derive_more",
- "enumn",
- "fixed-hash 0.8.0 (git+https://github.com/core-coin/core-common.git)",
- "hashbrown 0.13.2",
- "hex",
- "hex-literal",
- "primitive-types 0.12.1",
- "proptest",
- "proptest-derive",
- "rlp 0.5.2 (git+https://github.com/core-coin/core-common.git)",
- "ruint",
- "serde",
- "sha3",
-]
-
-[[package]]
-name = "revm-test"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "hex",
- "microbench",
- "revm",
-]
-
-[[package]]
-name = "revme"
-version = "0.2.0"
-dependencies = [
- "bytes",
- "hash-db",
- "hashbrown 0.13.2",
- "hex",
- "hex-literal",
- "indicatif",
- "plain_hasher",
- "primitive-types 0.12.2",
- "revm",
- "rlp 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "ruint",
- "serde",
- "serde_json",
- "sha3",
- "structopt",
- "thiserror",
- "triehash",
- "walkdir",
-]
 
 [[package]]
 name = "rfc6979"

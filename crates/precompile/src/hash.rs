@@ -1,6 +1,6 @@
 use super::calc_linear_cost_u32;
 use crate::{Error, Precompile, PrecompileAddress, PrecompileResult, StandardPrecompileFn};
-use revm_primitives::Network;
+use cvm_primitives::Network;
 use sha2::*;
 
 pub const SHA256: PrecompileAddress = PrecompileAddress(

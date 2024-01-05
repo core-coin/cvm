@@ -22,7 +22,7 @@ impl Memory {
     /// Create a new memory with the given limit.
     pub fn new() -> Self {
         Self {
-            data: Vec::with_capacity(4 * 1024), // took it from evmone
+            data: Vec::with_capacity(4 * 1024),
         }
     }
 

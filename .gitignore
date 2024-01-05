@@ -7,5 +7,5 @@ target
 pkg/
 
 
-bins/revme/temp_folder
+bins/cvme/temp_folder
 ethereumjs-util.js

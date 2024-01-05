@@ -3,9 +3,9 @@
 use crate::inspectors::EnergyInspector;
 use crate::interpreter::{CallInputs, CreateInputs, Energy, InstructionResult};
 use crate::primitives::{db::Database, hex, Bytes, B176};
-use crate::{evm_impl::EVMData, Inspector};
-use revm_interpreter::primitives::U256;
-use revm_interpreter::{opcode, Interpreter, Memory, Stack};
+use crate::{cvm_impl::EVMData, Inspector};
+use cvm_interpreter::primitives::U256;
+use cvm_interpreter::{opcode, Interpreter, Memory, Stack};
 use serde_json::json;
 use std::io::Write;
 
