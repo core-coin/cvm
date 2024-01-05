@@ -1,6 +1,6 @@
 use bytes::Bytes;
-use revm;
-use revm::{
+use cvm;
+use cvm::{
     db::InMemoryDB,
     primitives::{AccountInfo, ExecutionResult, Output, TransactTo, TxEnv, B176, U256},
     EVM,
@@ -9,14 +9,14 @@ use std::str::FromStr;
 
 #[test]
 fn test_deploy_ican() {
-    // Contract bytecode -> bins/revme/tests/Huff/Send.huff
+    // Contract bytecode -> bins/cvme/tests/Huff/Send.huff
     let contract_data: Bytes = hex::decode("604c8060093d393df360003560e01c80633e58c58c14610011575b60043575ffffffffffffffffffffffffffffffffffffffffffff16600060006000600034855af16001146100455760006000fd5b0060006000fd").unwrap().into();
 
     // Create new EVM
-    let mut evm = EVM::new();
+    let mut cvm = EVM::new();
 
     // Create new in memory database
-    evm.database(InMemoryDB::default());
+    cvm.database(InMemoryDB::default());
 
     // create AccountInfo with balance for energy
     let account_user = AccountInfo {
@@ -25,23 +25,23 @@ fn test_deploy_ican() {
     };
 
     // Assign the AccountInfo to 0x02 address
-    evm.db.as_mut().unwrap().insert_account_info(
+    cvm.db.as_mut().unwrap().insert_account_info(
         B176::from_str("0x00000000000000000000000000000000000000000002").unwrap(),
         account_user,
     );
 
     // Transaction caller is 0x02
-    evm.env.tx.caller = B176::from_str("0x00000000000000000000000000000000000000000002").unwrap();
+    cvm.env.tx.caller = B176::from_str("0x00000000000000000000000000000000000000000002").unwrap();
 
     // account you want to transact with
-    // Noramlly this would just be the zero address but REVM needs it explicitly
-    evm.env.tx.transact_to = TransactTo::Create(revm::primitives::CreateScheme::Create);
+    // Noramlly this would just be the zero address but cvm needs it explicitly
+    cvm.env.tx.transact_to = TransactTo::Create(cvm::primitives::CreateScheme::Create);
 
     // Bytecode to deploy
-    evm.env.tx.data = contract_data;
+    cvm.env.tx.data = contract_data;
 
     // Transact and write to database
-    let s = evm.transact_commit().unwrap();
+    let s = cvm.transact_commit().unwrap();
 
     let addr;
     if let ExecutionResult::Success {
@@ -77,13 +77,13 @@ fn test_deploy_ican() {
     };
 
     // Assign the tx
-    evm.env.tx = tx;
+    cvm.env.tx = tx;
 
     // Transact and write to database
-    let _ = evm.transact_commit().unwrap();
+    let _ = cvm.transact_commit().unwrap();
 
     // Get balance of the 0xff account
-    let balance = evm
+    let balance = cvm
         .db
         .unwrap()
         .accounts

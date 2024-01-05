@@ -5,7 +5,7 @@ members = [
     "bins/*",
     "crates/*",
 ]
-default-members = ["crates/revm"]
+default-members = ["crates/cvm"]
 
 [profile.release]
 lto = true

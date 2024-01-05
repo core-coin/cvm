@@ -1,4 +1,4 @@
-use revm_primitives::Network;
+use cvm_primitives::Network;
 
 use crate::{Error, PrecompileAddress, StandardPrecompileFn};
 use crate::{Precompile, PrecompileResult};

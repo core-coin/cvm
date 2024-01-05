@@ -85,7 +85,7 @@ impl Output {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum EVMError<DB> {
     Transaction(InvalidTransaction),
-    /// REVM specific and related to environment.
+    /// cvm specific and related to environment.
     PrevrandaoNotSet,
     Database(DB),
 }

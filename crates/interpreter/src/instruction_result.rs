@@ -1,4 +1,4 @@
-use revm_primitives::{Eval, Halt};
+use cvm_primitives::{Eval, Halt};
 
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -99,19 +99,19 @@ impl From<InstructionResult> for SuccessOrHalt {
             InstructionResult::CallTooDeep => Self::Halt(Halt::CallTooDeep), // not gonna happen for first call
             InstructionResult::OutOfFund => Self::Halt(Halt::OutOfFund), // Check for first call is done separately.
             InstructionResult::OutOfEnergy => Self::Halt(Halt::OutOfEnergy(
-                revm_primitives::OutOfEnergyError::BasicOutOfEnergy,
+                cvm_primitives::OutOfEnergyError::BasicOutOfEnergy,
             )),
             InstructionResult::MemoryLimitOOG => Self::Halt(Halt::OutOfEnergy(
-                revm_primitives::OutOfEnergyError::MemoryLimit,
+                cvm_primitives::OutOfEnergyError::MemoryLimit,
             )),
             InstructionResult::MemoryOOG => {
-                Self::Halt(Halt::OutOfEnergy(revm_primitives::OutOfEnergyError::Memory))
+                Self::Halt(Halt::OutOfEnergy(cvm_primitives::OutOfEnergyError::Memory))
             }
             InstructionResult::PrecompileOOG => Self::Halt(Halt::OutOfEnergy(
-                revm_primitives::OutOfEnergyError::Precompile,
+                cvm_primitives::OutOfEnergyError::Precompile,
             )),
             InstructionResult::InvalidOperandOOG => Self::Halt(Halt::OutOfEnergy(
-                revm_primitives::OutOfEnergyError::InvalidOperand,
+                cvm_primitives::OutOfEnergyError::InvalidOperand,
             )),
             InstructionResult::OpcodeNotFound => Self::Halt(Halt::OpcodeNotFound),
             InstructionResult::CallNotAllowedInsideStatic => {

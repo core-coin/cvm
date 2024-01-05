@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use revm::primitives::{B176, B256, U256};
+use cvm::primitives::{B176, B256, U256};
 use std::collections::{BTreeMap, HashMap};
 mod deserializer;
 mod spec;
@@ -97,7 +97,7 @@ pub type AccessList = Vec<AccessListItem>;
 mod tests {
 
     use super::*;
-    use revm::primitives::B176;
+    use cvm::primitives::B176;
     use serde_json::Error;
 
     #[test]

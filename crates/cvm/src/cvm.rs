@@ -1,13 +1,13 @@
 use crate::primitives::{specification, EVMError, EVMResult, Env, ExecutionResult, SpecId};
 use crate::{
+    cvm_impl::{EVMImpl, Transact},
     db::{Database, DatabaseCommit, DatabaseRef, RefDBWrapper},
-    evm_impl::{EVMImpl, Transact},
     inspectors::NoOpInspector,
     Inspector,
 };
 use alloc::boxed::Box;
-use revm_interpreter::primitives::ResultAndState;
-use revm_precompile::Precompiles;
+use cvm_interpreter::primitives::ResultAndState;
+use cvm_precompile::Precompiles;
 
 /// Struct that takes Database and enabled transact to update state directly to database.
 /// additionally it allows user to set all environment parameters.
@@ -64,7 +64,7 @@ impl<DB: Database> EVM<DB> {
     pub fn transact(&mut self) -> EVMResult<DB::Error> {
         if let Some(db) = self.db.as_mut() {
             let mut noop = NoOpInspector {};
-            let out = evm_inner::<DB, false>(&mut self.env, db, &mut noop).transact();
+            let out = cvm_inner::<DB, false>(&mut self.env, db, &mut noop).transact();
             out
         } else {
             panic!("Database needs to be set");
@@ -74,7 +74,7 @@ impl<DB: Database> EVM<DB> {
     /// Execute transaction with given inspector, without wring to DB. Return change state.
     pub fn inspect<INSP: Inspector<DB>>(&mut self, mut inspector: INSP) -> EVMResult<DB::Error> {
         if let Some(db) = self.db.as_mut() {
-            evm_inner::<DB, true>(&mut self.env, db, &mut inspector).transact()
+            cvm_inner::<DB, true>(&mut self.env, db, &mut inspector).transact()
         } else {
             panic!("Database needs to be set");
         }
@@ -89,7 +89,7 @@ impl<'a, DB: DatabaseRef> EVM<DB> {
             let mut db = RefDBWrapper::new(db);
             let db = &mut db;
             let out =
-                evm_inner::<RefDBWrapper<DB::Error>, false>(&mut self.env.clone(), db, &mut noop)
+                cvm_inner::<RefDBWrapper<DB::Error>, false>(&mut self.env.clone(), db, &mut noop)
                     .transact();
             out
         } else {
@@ -105,7 +105,7 @@ impl<'a, DB: DatabaseRef> EVM<DB> {
         if let Some(db) = self.db.as_ref() {
             let mut db = RefDBWrapper::new(db);
             let db = &mut db;
-            let out = evm_inner::<RefDBWrapper<DB::Error>, true>(
+            let out = cvm_inner::<RefDBWrapper<DB::Error>, true>(
                 &mut self.env.clone(),
                 db,
                 &mut inspector,
@@ -142,7 +142,7 @@ impl<DB> EVM<DB> {
     }
 }
 
-macro_rules! create_evm {
+macro_rules! create_cvm {
     ($spec:ident, $db:ident,$env:ident,$inspector:ident,$network:expr) => {
         Box::new(EVMImpl::<'a, $spec, DB, INSPECT>::new(
             $db,
@@ -154,23 +154,23 @@ macro_rules! create_evm {
     };
 }
 
-pub fn to_precompile_id(spec_id: SpecId) -> revm_precompile::SpecId {
+pub fn to_precompile_id(spec_id: SpecId) -> cvm_precompile::SpecId {
     match spec_id {
         SpecId::FRONTIER
         | SpecId::FRONTIER_THAWING
         | SpecId::HOMESTEAD
         | SpecId::DAO_FORK
         | SpecId::TANGERINE
-        | SpecId::SPURIOUS_DRAGON => revm_precompile::SpecId::HOMESTEAD,
+        | SpecId::SPURIOUS_DRAGON => cvm_precompile::SpecId::HOMESTEAD,
         SpecId::BYZANTIUM | SpecId::CONSTANTINOPLE | SpecId::PETERSBURG => {
-            revm_precompile::SpecId::BYZANTIUM
+            cvm_precompile::SpecId::BYZANTIUM
         }
-        SpecId::ISTANBUL => revm_precompile::SpecId::ISTANBUL,
-        SpecId::LATEST => revm_precompile::SpecId::ISTANBUL,
+        SpecId::ISTANBUL => cvm_precompile::SpecId::ISTANBUL,
+        SpecId::LATEST => cvm_precompile::SpecId::ISTANBUL,
     }
 }
 
-pub fn evm_inner<'a, DB: Database, const INSPECT: bool>(
+pub fn cvm_inner<'a, DB: Database, const INSPECT: bool>(
     env: &'a mut Env,
     db: &'a mut DB,
     insp: &'a mut dyn Inspector<DB>,
@@ -179,18 +179,18 @@ pub fn evm_inner<'a, DB: Database, const INSPECT: bool>(
     let network = env.cfg.network_id;
     match env.cfg.spec_id {
         SpecId::FRONTIER | SpecId::FRONTIER_THAWING => {
-            create_evm!(FrontierSpec, db, env, insp, network)
+            create_cvm!(FrontierSpec, db, env, insp, network)
         }
-        SpecId::HOMESTEAD | SpecId::DAO_FORK => create_evm!(HomesteadSpec, db, env, insp, network),
-        SpecId::TANGERINE => create_evm!(TangerineSpec, db, env, insp, network),
-        SpecId::SPURIOUS_DRAGON => create_evm!(SpuriousDragonSpec, db, env, insp, network),
-        SpecId::BYZANTIUM => create_evm!(ByzantiumSpec, db, env, insp, network),
+        SpecId::HOMESTEAD | SpecId::DAO_FORK => create_cvm!(HomesteadSpec, db, env, insp, network),
+        SpecId::TANGERINE => create_cvm!(TangerineSpec, db, env, insp, network),
+        SpecId::SPURIOUS_DRAGON => create_cvm!(SpuriousDragonSpec, db, env, insp, network),
+        SpecId::BYZANTIUM => create_cvm!(ByzantiumSpec, db, env, insp, network),
         SpecId::PETERSBURG | SpecId::CONSTANTINOPLE => {
-            create_evm!(PetersburgSpec, db, env, insp, network)
+            create_cvm!(PetersburgSpec, db, env, insp, network)
         }
         SpecId::ISTANBUL => {
-            create_evm!(IstanbulSpec, db, env, insp, network)
+            create_cvm!(IstanbulSpec, db, env, insp, network)
         }
-        SpecId::LATEST => create_evm!(LatestSpec, db, env, insp, network),
+        SpecId::LATEST => create_cvm!(LatestSpec, db, env, insp, network),
     }
 }
