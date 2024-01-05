@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use bytes::Bytes;
-use revm::primitives::{Env, TransactTo, B176, U256};
+use cvm::primitives::{Env, TransactTo, B176, U256};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Clone, Debug)]

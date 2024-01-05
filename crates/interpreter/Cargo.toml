@@ -1,16 +1,16 @@
 [package]
 authors = ["Dragan Rakita <dragan0rakita@gmail.com>"]
-description = "REVM Interpreter"
+description = "CVM Interpreter"
 edition = "2021"
-keywords = ["no_std", "ethereum", "evm", "revm", "interpreter"]
+keywords = ["no_std", "ethereum", "cvm", "interpreter"]
 license = "MIT"
-name = "revm-interpreter"
-repository = "https://github.com/bluealloy/revm"
+name = "cvm-interpreter"
+repository = "https://github.com/core-coin/cvm"
 version = "1.0.0"
 readme = "../../README.md"
 
 [dependencies]
-revm-primitives = { path = "../primitives", version="1.0.0", default-features = false }
+cvm-primitives = { path = "../primitives", version="1.0.0", default-features = false }
 
 #utility
 derive_more = "0.99"
@@ -39,20 +39,20 @@ dev = [
     "optional_eip3607",
     "optional_energy_refund",
 ]
-memory_limit = ["revm-primitives/memory_limit"]
-no_energy_measuring = ["revm-primitives/no_energy_measuring"]
-optional_balance_check = ["revm-primitives/optional_balance_check"]
-optional_block_energy_limit = ["revm-primitives/optional_block_energy_limit"]
-optional_eip3607 = ["revm-primitives/optional_eip3607"]
-optional_energy_refund = ["revm-primitives/optional_energy_refund"]
-std = ["revm-primitives/std"]
+memory_limit = ["cvm-primitives/memory_limit"]
+no_energy_measuring = ["cvm-primitives/no_energy_measuring"]
+optional_balance_check = ["cvm-primitives/optional_balance_check"]
+optional_block_energy_limit = ["cvm-primitives/optional_block_energy_limit"]
+optional_eip3607 = ["cvm-primitives/optional_eip3607"]
+optional_energy_refund = ["cvm-primitives/optional_energy_refund"]
+std = ["cvm-primitives/std"]
 serde = [
     "dep:serde",
-    "revm-primitives/serde",
+    "cvm-primitives/serde",
 ]
 arbitrary = [
     "dep:arbitrary",
     "dep:proptest",
     "dep:proptest-derive",
-    "revm-primitives/arbitrary",
+    "cvm-primitives/arbitrary",
 ]

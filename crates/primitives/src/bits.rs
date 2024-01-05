@@ -9,14 +9,14 @@ use arbitrary::Arbitrary;
 use proptest_derive::Arbitrary as PropTestArbitrary;
 
 construct_fixed_hash! {
-    /// revm 256 bits type.
+    /// cvm 256 bits type.
     #[cfg_attr(any(test, feature = "arbitrary"), derive(Arbitrary, PropTestArbitrary))]
     #[derive(AsRef,Deref)]
     pub struct B256(32);
 }
 
 construct_fixed_hash! {
-    /// revm 160 bits type.
+    /// cvm 160 bits type.
     #[cfg_attr(any(test, feature = "arbitrary"), derive(Arbitrary, PropTestArbitrary))]
     #[derive(AsRef,Deref)]
     pub struct B160(20);

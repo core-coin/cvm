@@ -5,8 +5,8 @@ pub const ECRECOVER: PrecompileAddress = PrecompileAddress(
 );
 
 use crate::B256;
+use cvm_primitives::{to_ican, Network, B160, B256 as rB256};
 use libgoldilocks::goldilocks::ed448_verify_with_error;
-use revm_primitives::{to_ican, Network, B160, B256 as rB256};
 use sha3::{Digest, Sha3_256};
 
 pub fn ecrecover(
@@ -64,8 +64,8 @@ mod tests {
         secp256k1::{ec_recover_run, ecrecover},
         B256,
     };
+    use cvm_primitives::Network;
     use hex;
-    use revm_primitives::Network;
 
     #[test]
     fn test_recover() {

@@ -1,4 +1,4 @@
-use crate::evm_impl::EVMData;
+use crate::cvm_impl::EVMData;
 use crate::interpreter::{CallInputs, CreateInputs, Energy, InstructionResult, Interpreter};
 use crate::primitives::{db::Database, Bytes, B176, B256};
 
@@ -11,7 +11,7 @@ pub mod noop;
 #[cfg(feature = "serde")]
 pub mod tracer_eip3155;
 
-/// All Inspectors implementations that revm has.
+/// All Inspectors implementations that cvm has.
 pub mod inspectors {
     #[cfg(feature = "std")]
     pub use super::customprinter::CustomPrintTracer;
@@ -56,7 +56,7 @@ pub trait Inspector<DB: Database> {
     /// Called when a log is emitted.
     fn log(
         &mut self,
-        _evm_data: &mut EVMData<'_, DB>,
+        _cvm_data: &mut EVMData<'_, DB>,
         _address: &B176,
         _topics: &[B256],
         _data: &Bytes,

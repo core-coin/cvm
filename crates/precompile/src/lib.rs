@@ -5,12 +5,12 @@ mod identity;
 mod modexp;
 mod secp256k1;
 
+pub use cvm_primitives as primitives;
 use once_cell::sync::OnceCell;
 pub use primitives::{
     precompile::{PrecompileError as Error, *},
     Bytes, HashMap,
 };
-pub use revm_primitives as primitives;
 pub use std::fmt;
 
 pub type B176 = [u8; 22];
@@ -88,9 +88,9 @@ pub enum SpecId {
 }
 
 impl SpecId {
-    /// Returns the appropriate precompile Spec for the primitive [SpecId](revm_primitives::SpecId)
-    pub const fn from_spec_id(spec_id: revm_primitives::SpecId) -> Self {
-        use revm_primitives::SpecId::*;
+    /// Returns the appropriate precompile Spec for the primitive [SpecId](cvm_primitives::SpecId)
+    pub const fn from_spec_id(spec_id: cvm_primitives::SpecId) -> Self {
+        use cvm_primitives::SpecId::*;
         match spec_id {
             FRONTIER | FRONTIER_THAWING | HOMESTEAD | DAO_FORK | TANGERINE | SPURIOUS_DRAGON => {
                 Self::HOMESTEAD
