@@ -1,7 +1,7 @@
 # v2.0.0
 date: 29.01.2023
 
-Renamed to `revm-precompiles` from `revm_precompiles`
+Renamed to `cvm-precompiles` from `cvm_precompiles`
 
 # v1.1.2
 date: 22.11.2022
@@ -38,7 +38,7 @@ date: 20.1.2022
 # v0.3.0
 
 * switch stacks H256 with U256 
-* Error type is changed to `Return` in revm so it is in precompiles.
+* Error type is changed to `Return` in cvm so it is in precompiles.
 # v0.2.0
 
 Removed parity-crypto and use only needed secp256k1 lib. Added `ecrecover` feature to allow dissabling it for wasm windows builds.

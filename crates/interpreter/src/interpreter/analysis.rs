@@ -4,7 +4,7 @@ use alloc::sync::Arc;
 // use bitvec::order::Lsb0;
 // use bitvec::prelude::bitvec;
 // use bitvec::vec::BitVec;
-use revm_primitives::{
+use cvm_primitives::{
     bitvec::prelude::{bitvec, BitVec, Lsb0},
     JumpMap,
 };

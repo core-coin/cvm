@@ -1,4 +1,4 @@
-use revm_primitives::Network;
+use cvm_primitives::Network;
 
 use super::calc_linear_cost_u32;
 use crate::{Error, Precompile, PrecompileAddress, PrecompileResult, StandardPrecompileFn};

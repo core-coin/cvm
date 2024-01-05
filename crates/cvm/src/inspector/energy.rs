@@ -2,7 +2,7 @@
 //!
 use crate::interpreter::{CallInputs, CreateInputs, Energy, InstructionResult};
 use crate::primitives::{db::Database, Bytes, B176};
-use crate::{evm_impl::EVMData, Inspector};
+use crate::{cvm_impl::EVMData, Inspector};
 
 #[allow(dead_code)]
 #[derive(Clone, Copy, Debug, Default)]
@@ -132,12 +132,12 @@ mod tests {
 
         fn log(
             &mut self,
-            evm_data: &mut EVMData<'_, DB>,
+            cvm_data: &mut EVMData<'_, DB>,
             address: &B176,
             topics: &[B256],
             data: &Bytes,
         ) {
-            self.energy_inspector.log(evm_data, address, topics, data);
+            self.energy_inspector.log(cvm_data, address, topics, data);
         }
 
         fn step_end(
@@ -244,15 +244,15 @@ mod tests {
         ]);
         let bytecode = Bytecode::new_raw(contract_data);
 
-        let mut evm = crate::new();
-        evm.database(BenchmarkDB::new_bytecode(bytecode.clone()));
-        evm.env.tx.caller = B176(hex!("10000000000000000000000000000000000000000000"));
-        evm.env.tx.transact_to =
+        let mut cvm = crate::new();
+        cvm.database(BenchmarkDB::new_bytecode(bytecode.clone()));
+        cvm.env.tx.caller = B176(hex!("10000000000000000000000000000000000000000000"));
+        cvm.env.tx.transact_to =
             TransactTo::Call(B176(hex!("00000000000000000000000000000000000000000000")));
-        evm.env.tx.energy_limit = 21100;
+        cvm.env.tx.energy_limit = 21100;
 
         let mut inspector = StackInspector::default();
-        let ResultAndState { result, state } = evm.inspect(&mut inspector).unwrap();
+        let ResultAndState { result, state } = cvm.inspect(&mut inspector).unwrap();
         println!("{result:?} {state:?} {inspector:?}");
 
         for (pc, energy) in inspector.energy_remaining_steps {
