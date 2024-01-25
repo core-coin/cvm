@@ -18,6 +18,7 @@ rlp = { git = "https://github.com/core-coin/core-common.git", default-features =
 ruint = { version = "1.8.0", features = ["primitive-types", "rlp"] }
 auto_impl = "1.0"
 bitvec = { version = "1", default-features = false, features = ["alloc"] }
+libgoldilocks = { git = "https://github.com/core-coin/ed448-rs" }
 
 # bits B256 B176 crate
 fixed-hash = { git = "https://github.com/core-coin/core-common.git", default-features = false, features = [
