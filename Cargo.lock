@@ -1216,6 +1216,7 @@ dependencies = [
  "hashbrown 0.13.2",
  "hex",
  "hex-literal",
+ "libgoldilocks",
  "primitive-types 0.12.1",
  "proptest",
  "proptest-derive",

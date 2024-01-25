@@ -50,11 +50,8 @@ fn ec_recover_run(i: &[u8], target_energy: u64, network: Network) -> PrecompileR
     let mut sig = [0u8; 171];
     msg[0..32].copy_from_slice(&input[0..32]);
     sig[0..171].copy_from_slice(&input[96..32 * 3 + 171]);
-    let out = ecrecover(&sig, &msg, network).map(Vec::from);
-    if out.is_err() {
-        return Err(Error::EcrecoverBadData);
-    }
-    Ok((ECRECOVER_BASE, out.unwrap()))
+    let out = ecrecover(&sig, &msg, network).map(Vec::from)?;
+    Ok((ECRECOVER_BASE, out))
 }
 
 #[cfg(test)]
