@@ -456,7 +456,9 @@ pub fn call_inner<SPEC: Spec>(
     };
 
     // Call host to interuct with target contract
+    println!("cvm call input: {:#?}", call_input.input);
     let (reason, energy, return_data) = host.call(&mut call_input);
+    println!("cvm call res: {:#?}", reason);
 
     interpreter.return_data_buffer = return_data;
 
