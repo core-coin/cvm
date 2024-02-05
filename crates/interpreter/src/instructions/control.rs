@@ -59,6 +59,7 @@ pub fn ret(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 pub fn revert<SPEC: Spec>(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     // zero energy cost energy!(interp,energy::ZERO);
     // EIP-140: REVERT instruction
+    println!("revert");
     check!(interpreter, SPEC::enabled(BYZANTIUM));
     pop!(interpreter, start, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
