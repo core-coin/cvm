@@ -671,9 +671,12 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> EVMImpl<'a, GSPEC, DB, 
     ) -> (InstructionResult, Energy, Bytes) {
         // Call the inspector
         if INSPECT {
+            println!("cvm call_inner input: {:#?}", inputs.input);
             let (ret, energy, out) = self
                 .inspector
                 .call(&mut self.data, inputs, inputs.is_static);
+            println!("cvm call_inner res: {:#?}", ret);
+
             if ret != InstructionResult::Continue {
                 return self.inspector.call_end(
                     &mut self.data,
