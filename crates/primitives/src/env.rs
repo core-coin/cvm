@@ -117,7 +117,7 @@ pub enum AnalysisKind {
 impl Default for CfgEnv {
     fn default() -> CfgEnv {
         CfgEnv {
-            network_id: 1,
+            network_id: 1337,
             // For the CVM the target is Istanbul
             spec_id: SpecId::ISTANBUL,
             perf_all_precompiles_have_balance: false,
