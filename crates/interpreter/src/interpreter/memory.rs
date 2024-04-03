@@ -1,4 +1,4 @@
-use crate::{alloc::vec::Vec, primitives::U256};
+use crate::primitives::U256;
 use core::{
     cmp::min,
     ops::{BitAnd, Not},

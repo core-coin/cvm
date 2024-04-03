@@ -1,5 +1,4 @@
 use crate::{Log, State, B176};
-use alloc::vec::Vec;
 use bytes::Bytes;
 use ruint::aliases::U256;
 

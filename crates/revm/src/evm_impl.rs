@@ -11,7 +11,6 @@ use crate::primitives::{
     TransactTo, B176, B256, SHA3_EMPTY, U256,
 };
 use crate::{db::Database, journaled_state::JournaledState, precompile, Inspector};
-use alloc::vec::Vec;
 use core::{cmp::min, marker::PhantomData};
 use revm_interpreter::energy::Energy;
 use revm_interpreter::primitives::Network;

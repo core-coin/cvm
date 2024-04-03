@@ -1,5 +1,5 @@
 use crate::{sha3, B256, SHA3_EMPTY};
-use alloc::{sync::Arc, vec, vec::Vec};
+use alloc::{sync::Arc, vec};
 use bitvec::prelude::{bitvec, Lsb0};
 use bitvec::vec::BitVec;
 use bytes::Bytes;

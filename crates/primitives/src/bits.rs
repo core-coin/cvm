@@ -190,8 +190,7 @@ impl<'de> serde::Deserialize<'de> for B176 {
 #[cfg(feature = "serde")]
 mod serialize {
 
-    use alloc::string::String;
-    use core::{fmt, result::Result};
+    use core::fmt;
     use serde::{de, Deserializer, Serializer};
 
     static CHARS: &[u8] = b"0123456789abcdef";

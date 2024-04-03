@@ -81,9 +81,9 @@ pub struct CliEnvTx {
     #[structopt(long = "env.tx.energy_limit")]
     pub tx_energy_limit: Option<u64>,
     #[structopt(long = "env.tx.energy_price")]
-    pub energy_price: Option<u64>,
+    pub _energy_price: Option<u64>,
     #[structopt(long = "env.tx.energy_priority_fee")]
-    pub energy_priority_fee: Option<u64>,
+    pub _energy_priority_fee: Option<u64>,
     #[structopt(long = "env.tx.to", parse(try_from_str = parse_b176))]
     pub transact_to: Option<B176>,
     #[structopt(long = "env.tx.value")]

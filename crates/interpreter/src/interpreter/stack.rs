@@ -1,5 +1,5 @@
 use crate::primitives::{B256, U256};
-use crate::{alloc::vec::Vec, InstructionResult};
+use crate::InstructionResult;
 
 pub const STACK_LIMIT: usize = 1024;
 

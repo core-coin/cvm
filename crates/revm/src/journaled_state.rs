@@ -3,7 +3,7 @@ use crate::primitives::{
     db::Database, hash_map::Entry, Account, Bytecode, HashMap, Log, State, StorageSlot, B176,
     SHA3_EMPTY, U256,
 };
-use alloc::{vec, vec::Vec};
+use alloc::vec;
 use core::mem::{self};
 
 #[derive(Debug, Clone, Eq, PartialEq)]

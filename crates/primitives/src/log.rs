@@ -1,5 +1,4 @@
 use crate::{bytes::Bytes, B176, B256};
-use alloc::vec::Vec;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

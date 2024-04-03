@@ -5,7 +5,6 @@ use crate::{
     inspectors::NoOpInspector,
     Inspector,
 };
-use alloc::boxed::Box;
 use revm_interpreter::primitives::ResultAndState;
 use revm_precompile::Precompiles;
 

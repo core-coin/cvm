@@ -1,5 +1,4 @@
 use crate::Network;
-use alloc::vec::Vec;
 use libgoldilocks::errors::LibgoldilockErrors;
 
 /// A precompile operation result.

@@ -1,6 +1,5 @@
 use crate::primitives::{Bytes, Spec, SpecId::*, B176, B256, U256};
 use crate::{
-    alloc::vec::Vec,
     energy::{self},
     interpreter::Interpreter,
     return_ok, return_revert, CallContext, CallInputs, CallScheme, CreateInputs, CreateScheme,

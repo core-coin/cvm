@@ -146,7 +146,6 @@ fn construct_ican_address(prefix: &str, checksum: &u64, addr: &B160) -> B176 {
 /// Serde functions to serde as [bytes::Bytes] hex string
 #[cfg(feature = "serde")]
 pub mod serde_hex_bytes {
-    use alloc::string::String;
     use serde::{Deserialize, Deserializer, Serializer};
 
     pub fn serialize<S, T>(x: T, s: S) -> Result<S::Ok, S::Error>

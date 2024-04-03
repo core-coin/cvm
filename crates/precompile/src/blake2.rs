@@ -2,7 +2,6 @@ use revm_primitives::Network;
 
 use crate::{Error, PrecompileAddress, StandardPrecompileFn};
 use crate::{Precompile, PrecompileResult};
-use core::convert::TryInto;
 
 const F_ROUND: u64 = 1;
 const INPUT_LENGTH: usize = 213;
