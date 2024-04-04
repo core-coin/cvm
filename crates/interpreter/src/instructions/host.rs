@@ -175,6 +175,7 @@ pub fn log<const N: u8>(interpreter: &mut Interpreter, host: &mut dyn Host) {
     };
     let n = N as usize;
     if interpreter.stack.len() < n {
+        println!("UNDERFLOW IN LOG");
         interpreter.instruction_result = InstructionResult::StackUnderflow;
         return;
     }

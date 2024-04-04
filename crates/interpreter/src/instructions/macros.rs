@@ -85,6 +85,7 @@ macro_rules! memory_resize {
 macro_rules! pop_address {
     ( $interp:expr, $x1:ident) => {
         if $interp.stack.len() < 1 {
+            println!("UNDERFLOW IN POP ADDRESS 1: {:#?}", $interp.stack);
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
@@ -97,6 +98,7 @@ macro_rules! pop_address {
     };
     ( $interp:expr, $x1:ident, $x2:ident) => {
         if $interp.stack.len() < 2 {
+            println!("UNDERFLOW IN POP ADDRESS 2: {:#?}", $interp.stack);
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
@@ -117,8 +119,8 @@ macro_rules! pop_address {
 
 macro_rules! pop {
     ( $interp:expr, $x1:ident) => {
-        println!("POPPING 1, stack.len(): {}", $interp.stack.len());
         if $interp.stack.len() < 1 {
+            println!("POPPING 1, stack.len(): {}", $interp.stack.len());
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
@@ -126,8 +128,8 @@ macro_rules! pop {
         let $x1 = unsafe { $interp.stack.pop_unsafe() };
     };
     ( $interp:expr, $x1:ident, $x2:ident) => {
-        println!("POPPING 2, stack.len(): {}", $interp.stack.len());
         if $interp.stack.len() < 2 {
+            println!("POPPING 2, stack.len(): {}", $interp.stack.len());
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
@@ -135,8 +137,8 @@ macro_rules! pop {
         let ($x1, $x2) = unsafe { $interp.stack.pop2_unsafe() };
     };
     ( $interp:expr, $x1:ident, $x2:ident, $x3:ident) => {
-        println!("POPPING 3, stack.len(): {}", $interp.stack.len());
         if $interp.stack.len() < 3 {
+            println!("POPPING 3, stack.len(): {}", $interp.stack.len());
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
@@ -145,8 +147,8 @@ macro_rules! pop {
     };
 
     ( $interp:expr, $x1:ident, $x2:ident, $x3:ident, $x4:ident) => {
-        println!("POPPING 4, stack.len(): {}", $interp.stack.len());
         if $interp.stack.len() < 4 {
+            println!("POPPING 4, stack.len(): {}", $interp.stack.len());
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
@@ -158,6 +160,7 @@ macro_rules! pop {
 macro_rules! pop_top {
     ( $interp:expr, $x1:ident) => {
         if $interp.stack.len() < 1 {
+            println!("UNDERFLOW IN POP TOP 1: {:#?}", $interp.stack);
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
@@ -166,6 +169,7 @@ macro_rules! pop_top {
     };
     ( $interp:expr, $x1:ident, $x2:ident) => {
         if $interp.stack.len() < 2 {
+            println!("UNDERFLOW IN POP TOP 2: {:#?}", $interp.stack);
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
@@ -174,6 +178,7 @@ macro_rules! pop_top {
     };
     ( $interp:expr, $x1:ident, $x2:ident, $x3:ident) => {
         if $interp.stack.len() < 3 {
+            println!("UNDERFLOW IN POP TOP 3: {:#?}", $interp.stack);
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }

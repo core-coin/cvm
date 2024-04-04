@@ -65,6 +65,7 @@ impl Stack {
     pub fn reduce_one(&mut self) -> Option<InstructionResult> {
         let len = self.data.len();
         if len < 1 {
+            println!("UNDERFLOW IN REDUCE ONE: {:#?}", self);
             return Some(InstructionResult::StackUnderflow);
         }
         unsafe {
@@ -77,7 +78,10 @@ impl Stack {
     /// Pop a value from the stack. If the stack is already empty, returns the
     /// `StackUnderflow` error.
     pub fn pop(&mut self) -> Result<U256, InstructionResult> {
-        self.data.pop().ok_or(InstructionResult::StackUnderflow)
+        self.data.pop().ok_or_else(|| {
+            println!("UNDERFLOW IN POP: {:#?}", self);
+            InstructionResult::StackUnderflow
+        })
     }
 
     #[inline(always)]
@@ -209,6 +213,7 @@ impl Stack {
         if self.data.len() > no_from_top {
             Ok(self.data[self.data.len() - no_from_top - 1])
         } else {
+            println!("UNDERFLOW IN PEEK: {:#?}", self);
             Err(InstructionResult::StackUnderflow)
         }
     }
@@ -217,6 +222,7 @@ impl Stack {
     pub fn dup<const N: usize>(&mut self) -> Option<InstructionResult> {
         let len = self.data.len();
         if len < N {
+            println!("UNDERFLOW IN DUP: {:#?}", self);
             Some(InstructionResult::StackUnderflow)
         } else if len + 1 > STACK_LIMIT {
             Some(InstructionResult::StackOverflow)
@@ -234,6 +240,7 @@ impl Stack {
     pub fn swap<const N: usize>(&mut self) -> Option<InstructionResult> {
         let len = self.data.len();
         if len <= N {
+            println!("UNDERFLOW IN SWAP: {:#?}", self);
             return Some(InstructionResult::StackUnderflow);
         }
         // Safety: length is checked before so we are okay to switch bytes in unsafe way.
@@ -312,6 +319,7 @@ impl Stack {
             self.data[len - no_from_top - 1] = val;
             Ok(())
         } else {
+            println!("UNDERFLOW IN SET: {:#?}", self);
             Err(InstructionResult::StackUnderflow)
         }
     }
