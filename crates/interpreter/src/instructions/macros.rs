@@ -129,7 +129,7 @@ macro_rules! pop {
     };
     ( $interp:expr, $x1:ident, $x2:ident) => {
         if $interp.stack.len() < 2 {
-            println!("POPPING 2, stack.len(): {}", $interp.stack.len());
+            println!("POPPING 2, stack: {:#?}", $interp.stack);
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
