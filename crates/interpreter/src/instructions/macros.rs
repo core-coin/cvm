@@ -128,11 +128,13 @@ macro_rules! pop {
         let $x1 = unsafe { $interp.stack.pop_unsafe() };
     };
     ( $interp:expr, $x1:ident, $x2:ident) => {
+        println!("IN POP, BEFORE CHECKING STACK LEN, STACK LEN IS: {}", $interp.stack.len());
         if $interp.stack.len() < 2 {
             println!("POPPING {}, stack: {:#?}", $interp.stack.len(), $interp.stack);
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
         }
+        println!("SHOULD GET HERE");
         // Safety: Length is checked above.
         let ($x1, $x2) = unsafe { $interp.stack.pop2_unsafe() };
     };

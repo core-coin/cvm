@@ -18,9 +18,13 @@ pub fn mstore(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     println!("MSTORE");
     println!("INTERPRETER: {:#?}", interpreter);
     pop!(interpreter, index, value);
+    println!("AFTER POP, IN MSTORE");
     let index = as_usize_or_fail!(interpreter, index, InstructionResult::InvalidOperandOOG);
+    println!("BEFORE RESIZE");
     memory_resize!(interpreter, index, 32);
+    println!("AFTER RESIZE");
     interpreter.memory.set_u256(index, value);
+    println!("END IN MSTORE");
 }
 
 pub fn mstore8(interpreter: &mut Interpreter, _host: &mut dyn Host) {
