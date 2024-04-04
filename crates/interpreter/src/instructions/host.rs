@@ -143,6 +143,7 @@ pub fn sload<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
 pub fn sstore<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
     check_staticcall!(interpreter);
 
+    println!("SSTORE");
     pop!(interpreter, index, value);
     let ret = host.sstore(interpreter.contract.address, index, value);
     if ret.is_none() {
@@ -163,6 +164,7 @@ pub fn sstore<SPEC: Spec>(interpreter: &mut Interpreter, host: &mut dyn Host) {
 pub fn log<const N: u8>(interpreter: &mut Interpreter, host: &mut dyn Host) {
     check_staticcall!(interpreter);
 
+    println!("LOG");
     pop!(interpreter, offset, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
     energy_or_fail!(interpreter, energy::log_cost(N, len as u64));
@@ -319,6 +321,7 @@ pub fn call_inner<SPEC: Spec>(
     }
     interpreter.return_data_buffer = Bytes::new();
 
+    println!("CALL INNER");
     pop!(interpreter, local_energy_limit);
     pop_address!(interpreter, to);
     let local_energy_limit = u64::try_from(local_energy_limit).unwrap_or(u64::MAX);

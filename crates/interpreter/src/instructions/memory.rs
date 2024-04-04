@@ -15,6 +15,7 @@ pub fn mload(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 
 pub fn mstore(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     energy!(interpreter, energy::VERYLOW);
+    println!("MSTORE");
     pop!(interpreter, index, value);
     let index = as_usize_or_fail!(interpreter, index, InstructionResult::InvalidOperandOOG);
     memory_resize!(interpreter, index, 32);
@@ -23,6 +24,7 @@ pub fn mstore(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 
 pub fn mstore8(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     energy!(interpreter, energy::VERYLOW);
+    println!("mstore8");
     pop!(interpreter, index, value);
     let index = as_usize_or_fail!(interpreter, index, InstructionResult::InvalidOperandOOG);
     memory_resize!(interpreter, index, 1);

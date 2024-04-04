@@ -19,6 +19,7 @@ pub fn jump(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 
 pub fn jumpi(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     energy!(interpreter, energy::HIGH);
+    println!("JUMPI");
     pop!(interpreter, dest, value);
     if value != U256::ZERO {
         let dest = as_usize_or_fail!(interpreter, dest, InstructionResult::InvalidJump);
@@ -44,6 +45,7 @@ pub fn pc(interpreter: &mut Interpreter, _host: &mut dyn Host) {
 
 pub fn ret(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     // zero energy cost energy!(interp,energy::ZERO);
+    println!("RET");
     pop!(interpreter, start, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
     if len == 0 {
@@ -60,6 +62,7 @@ pub fn revert<SPEC: Spec>(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     // zero energy cost energy!(interp,energy::ZERO);
     // EIP-140: REVERT instruction
     check!(interpreter, SPEC::enabled(BYZANTIUM));
+    println!("REVERT");
     pop!(interpreter, start, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
     if len == 0 {

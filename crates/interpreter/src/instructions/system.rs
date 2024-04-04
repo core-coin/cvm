@@ -7,6 +7,7 @@ use crate::{
 use core::cmp::min;
 
 pub fn sha3(interpreter: &mut Interpreter, _host: &mut dyn Host) {
+    println!("SHA3");
     pop!(interpreter, from, len);
     let len = as_usize_or_fail!(interpreter, len, InstructionResult::InvalidOperandOOG);
     energy_or_fail!(interpreter, energy::sha3_cost(len as u64));
