@@ -117,6 +117,7 @@ macro_rules! pop_address {
 
 macro_rules! pop {
     ( $interp:expr, $x1:ident) => {
+        println!("POPPING 1, stack.len(): {}", $interp.stack.len());
         if $interp.stack.len() < 1 {
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
@@ -125,6 +126,7 @@ macro_rules! pop {
         let $x1 = unsafe { $interp.stack.pop_unsafe() };
     };
     ( $interp:expr, $x1:ident, $x2:ident) => {
+        println!("POPPING 2, stack.len(): {}", $interp.stack.len());
         if $interp.stack.len() < 2 {
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
@@ -133,6 +135,7 @@ macro_rules! pop {
         let ($x1, $x2) = unsafe { $interp.stack.pop2_unsafe() };
     };
     ( $interp:expr, $x1:ident, $x2:ident, $x3:ident) => {
+        println!("POPPING 3, stack.len(): {}", $interp.stack.len());
         if $interp.stack.len() < 3 {
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
@@ -142,6 +145,7 @@ macro_rules! pop {
     };
 
     ( $interp:expr, $x1:ident, $x2:ident, $x3:ident, $x4:ident) => {
+        println!("POPPING 4, stack.len(): {}", $interp.stack.len());
         if $interp.stack.len() < 4 {
             $interp.instruction_result = InstructionResult::StackUnderflow;
             return;
