@@ -71,10 +71,7 @@ impl Memory {
         let _len = self.len();
         match self.data.get_mut(offset..offset + size) {
             Some(slice) => slice,
-            None => panic!(
-                "Memory out of bounds: offset={}, size={}, len={}",
-                offset, size, _len
-            ),
+            None => debug_unreachable!("slice_mut OOB: {offset}..{size}; len: {_len}"),
         }
     }
 
