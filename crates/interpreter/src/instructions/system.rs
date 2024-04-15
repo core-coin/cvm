@@ -4,7 +4,6 @@ use crate::{
     primitives::{sha3 as hash_sha3, Spec, SpecId::*, B256, SHA3_EMPTY, U256},
     Host, InstructionResult,
 };
-use core::cmp::min;
 
 pub fn sha3(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     pop!(interpreter, from, len);

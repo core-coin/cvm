@@ -74,6 +74,7 @@ pub struct CliEnvBlock {
 }
 
 #[derive(StructOpt, Clone, Debug)]
+#[allow(unused)]
 pub struct CliEnvTx {
     /// Caller or Author or tx signer
     #[structopt(long = "env.tx.caller", parse(try_from_str = parse_b176))]

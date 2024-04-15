@@ -1,4 +1,5 @@
 // Only in nightly so far throw warnings if you are on stable
+#![allow(non_local_definitions)]
 
 use derive_more::{AsRef, Deref};
 use fixed_hash::{construct_fixed_hash, impl_fixed_hash_conversions};

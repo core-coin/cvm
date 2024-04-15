@@ -164,10 +164,9 @@ impl Stack {
         (pop1, pop2, pop3, pop4)
     }
 
-    #[inline]
     /// Push a new value into the stack. If it will exceed the stack limit,
     /// returns `StackOverflow` error and leaves the stack unchanged.
-    #[inline(always)]
+    #[inline]
     pub fn push_b256(&mut self, value: B256) -> Result<(), InstructionResult> {
         self.push(value.into())
     }
