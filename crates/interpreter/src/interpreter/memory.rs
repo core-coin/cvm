@@ -62,6 +62,19 @@ impl Memory {
         &self.data[offset..offset + size]
     }
 
+    /// Returns a mutable byte slice of the memory region at the given offset.
+    ///
+    /// Panics on out of bounds.
+    #[inline(always)]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn slice_mut(&mut self, offset: usize, size: usize) -> &mut [u8] {
+        let _len = self.len();
+        match self.data.get_mut(offset..offset + size) {
+            Some(slice) => slice,
+            None => debug_unreachable!("slice_mut OOB: {offset}..{size}; len: {_len}"),
+        }
+    }
+
     /// Set memory region at given offset
     ///
     /// # Safety
@@ -89,21 +102,21 @@ impl Memory {
     #[inline(always)]
     pub fn set_data(&mut self, memory_offset: usize, data_offset: usize, len: usize, data: &[u8]) {
         if data_offset >= data.len() {
-            // nulify all memory slots
-            for i in &mut self.data[memory_offset..memory_offset + len] {
-                *i = 0;
-            }
+            // nullify all memory slots
+            self.slice_mut(memory_offset, len).fill(0);
             return;
         }
         let data_end = min(data_offset + len, data.len());
-        let memory_data_end = memory_offset + (data_end - data_offset);
-        self.data[memory_offset..memory_data_end].copy_from_slice(&data[data_offset..data_end]);
+        let data_len = data_end - data_offset;
+        debug_assert!(data_offset < data.len() && data_end <= data.len());
+        let data = unsafe { data.get_unchecked(data_offset..data_end) };
+        self.slice_mut(memory_offset, data_len)
+            .copy_from_slice(data);
 
-        // nulify rest of memory slots
+        // nullify rest of memory slots
         // Safety: Memory is assumed to be valid. And it is commented where that assumption is made
-        for i in &mut self.data[memory_data_end..memory_offset + len] {
-            *i = 0;
-        }
+        self.slice_mut(memory_offset + data_len, len - data_len)
+            .fill(0);
     }
 }
 

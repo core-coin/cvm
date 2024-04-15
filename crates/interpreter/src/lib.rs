@@ -1,5 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[macro_use]
+mod macros;
+
 pub mod energy;
 mod host;
 pub mod inner_models;

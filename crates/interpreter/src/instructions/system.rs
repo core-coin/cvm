@@ -4,7 +4,6 @@ use crate::{
     primitives::{sha3 as hash_sha3, Spec, SpecId::*, B256, SHA3_EMPTY, U256},
     Host, InstructionResult,
 };
-use core::cmp::min;
 
 pub fn sha3(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     pop!(interpreter, from, len);
@@ -66,15 +65,17 @@ pub fn calldataload(interpreter: &mut Interpreter, _host: &mut dyn Host) {
     let index = as_usize_saturated!(index);
 
     let load = if index < interpreter.contract.input.len() {
-        let have_bytes = min(interpreter.contract.input.len() - index, 32);
+        let n = 32.min(interpreter.contract.input.len() - index);
         let mut bytes = [0u8; 32];
-        bytes[..have_bytes].copy_from_slice(&interpreter.contract.input[index..index + have_bytes]);
-        B256(bytes)
+        // SAFETY: n <= len - index -> index + n <= len
+        let src = unsafe { interpreter.contract.input.get_unchecked(index..index + n) };
+        bytes[..n].copy_from_slice(src);
+        U256::from_be_bytes(bytes)
     } else {
-        B256::zero()
+        U256::ZERO
     };
 
-    push_b256!(interpreter, load);
+    push!(interpreter, load);
 }
 
 pub fn calldatasize(interpreter: &mut Interpreter, _host: &mut dyn Host) {
