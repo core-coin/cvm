@@ -1,7 +1,7 @@
 use crate::interpreter::{inner_models::SelfDestructResult, InstructionResult};
 use crate::primitives::{
     db::Database, hash_map::Entry, Account, Bytecode, HashMap, Log, State, StorageSlot, B176,
-    SHA3_EMPTY, U256,
+    B256, SHA3_EMPTY, U256,
 };
 use alloc::{vec, vec::Vec};
 use core::mem::{self};
@@ -69,7 +69,11 @@ pub enum JournalEntry {
     /// Code changed
     /// Action: Account code changed
     /// Revert: Revert to previous bytecode.
-    CodeChange { address: B176, had_code: Bytecode },
+    CodeChange {
+        address: B176,
+        had_code: Option<Bytecode>,
+        had_code_hash: B256,
+    },
 }
 
 /// SubRoutine checkpoint that will help us to go back from this
@@ -148,7 +152,8 @@ impl JournaledState {
             .unwrap()
             .push(JournalEntry::CodeChange {
                 address,
-                had_code: code.clone(),
+                had_code: account.info.code.clone(),
+                had_code_hash: account.info.code_hash,
             });
 
         account.info.code_hash = code.hash();
@@ -318,10 +323,10 @@ impl JournaledState {
                         storage.remove(&key);
                     }
                 }
-                JournalEntry::CodeChange { address, had_code } => {
+                JournalEntry::CodeChange { address, had_code, had_code_hash } => {
                     let acc = state.get_mut(&address).unwrap();
-                    acc.info.code_hash = had_code.hash();
-                    acc.info.code = Some(had_code);
+                    acc.info.code_hash = had_code_hash;
+                    acc.info.code = had_code;
                 }
             }
         }
