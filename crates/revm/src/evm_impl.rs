@@ -76,7 +76,7 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
         }
 
         // Check that the transaction's nonce is correct
-        if self.data.env.tx.nonce.is_some() {
+        if let Some(tx_nonce) = self.data.env.tx.nonce {
             let state_nonce = self
                 .data
                 .journaled_state
@@ -85,7 +85,6 @@ impl<'a, GSPEC: Spec, DB: Database, const INSPECT: bool> Transact<DB::Error>
                 .unwrap()
                 .info
                 .nonce;
-            let tx_nonce = self.data.env.tx.nonce.unwrap();
             match tx_nonce.cmp(&state_nonce) {
                 Ordering::Greater => {
                     return Err(InvalidTransaction::NonceTooHigh {

@@ -189,7 +189,7 @@ fn run_pair(
 
     use bn::{AffineG1, AffineG2, Fq, Fq2, Group, Gt, G1, G2};
 
-    if input.len() % PAIR_ELEMENT_LEN != 0 {
+    if !input.len().is_multiple_of(PAIR_ELEMENT_LEN) {
         return Err(Error::Bn128PairLength);
     }
 

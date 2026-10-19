@@ -19,7 +19,7 @@ macro_rules! check {
 macro_rules! energy {
     ($interp:expr, $energy:expr) => {
         if crate::USE_ENERGY {
-            if !$interp.energy.record_cost(($energy)) {
+            if !$interp.energy.record_cost($energy) {
                 $interp.instruction_result = InstructionResult::OutOfEnergy;
                 return;
             }

@@ -34,6 +34,7 @@ const FLIPH_BITMASK_U64: u64 = 0x7FFFFFFFFFFFFFFF;
 #[cfg_attr(test, derive(PropTestArbitrary))]
 #[cfg_attr(any(test, feature = "arbitrary"), derive(Arbitrary))]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[allow(dead_code)]
 pub struct I256(pub Sign, pub U256);
 
 #[inline(always)]
