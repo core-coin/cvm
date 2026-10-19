@@ -129,7 +129,7 @@ where
         Ordering::Equal => Ok((energy_cost, bytes)),
         Ordering::Less => {
             let mut ret = Vec::with_capacity(mod_len);
-            ret.extend(core::iter::repeat(0).take(mod_len - bytes.len()));
+            ret.extend(core::iter::repeat_n(0, mod_len - bytes.len()));
             ret.extend_from_slice(&bytes[..]);
             Ok((energy_cost, ret))
         }
