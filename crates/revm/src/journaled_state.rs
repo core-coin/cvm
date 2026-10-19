@@ -1,7 +1,7 @@
 use crate::interpreter::{inner_models::SelfDestructResult, InstructionResult};
 use crate::primitives::{
-    db::Database, hash_map::Entry, Account, Bytecode, HashMap, Log, State, StorageSlot, B176,
-    B256, SHA3_EMPTY, U256,
+    db::Database, hash_map::Entry, Account, Bytecode, HashMap, Log, State, StorageSlot, B176, B256,
+    SHA3_EMPTY, U256,
 };
 use alloc::{vec, vec::Vec};
 use core::mem::{self};
@@ -323,7 +323,11 @@ impl JournaledState {
                         storage.remove(&key);
                     }
                 }
-                JournalEntry::CodeChange { address, had_code, had_code_hash } => {
+                JournalEntry::CodeChange {
+                    address,
+                    had_code,
+                    had_code_hash,
+                } => {
                     let acc = state.get_mut(&address).unwrap();
                     acc.info.code_hash = had_code_hash;
                     acc.info.code = had_code;
